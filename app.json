@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "交通號誌MMS",
+    "slug": "TrafficMap",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/splashscreen_logo.png",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": false,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tuyn.TrafficMap",
+      "config": {
+        "googleMapsApiKey": "AIzaSyCNPqyJ8qQrE8OjuvpyU66bPrNe1Ej9MRU"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/splashscreen_logo.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.tuyn.TrafficMap"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/splashscreen_logo.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splashscreen_logo.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "05508eec-54da-408e-8cda-c5d6f8db5654"
+      }
+    }
+  }
+}
