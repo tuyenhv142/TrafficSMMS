@@ -74,7 +74,12 @@ const trafficLightList = () => {
         longitude: number;
         typesOfSignal: string;
         statusError: number;
+        statusErrorUpdate: number;
         isError: boolean;
+        isErrorUpdate: boolean;
+        totalUpdate: number;
+        account_userUpdate: string;
+        dateUpdate: string;
       }[];
     };
   }
@@ -85,7 +90,12 @@ const trafficLightList = () => {
     longitude: number;
     typesOfSignal: string;
     statusError: number;
+    statusErrorUpdate: number;
     isError: boolean;
+    isErrorUpdate: boolean;
+    totalUpdate: number;
+    account_userUpdate: string;
+    dateUpdate: string;
     expanded: boolean;
   }
   interface ApiUpdateResponse {
@@ -378,33 +388,40 @@ const trafficLightList = () => {
                       }}
                     >
                       <View>
-                        {!item.isError ? (
+                        {!item.isErrorUpdate ? (
                           <Text style={styles.statusText1}>維修紀錄: 無</Text>
                         ) : (
                           <>
                             <Text style={styles.statusText1}>
-                              維修紀錄: {item.statusError}
+                              維修紀錄: {item.totalUpdate}
                             </Text>
                             <Text style={styles.statusText1}>
-                              上次維修日期: {item.signalNumber}
+                              上次維修日期: {item.dateUpdate}
                             </Text>
                             <Text style={styles.statusText1}>
                               上次故障原因:{" "}
-                              {getRepairStatusDescription(item.statusError)}
+                              {getFaultCodeDescription2(item.statusErrorUpdate)}
                             </Text>
                             <Text style={styles.statusText1}>
-                              維修工程師:{" "}
-                              {item.statusError == 1 ? "杜文長" : "黃文選"}
+                              維修工程師: {item.account_userUpdate}
                             </Text>
                           </>
                         )}
                       </View>
                       {/* <TouchableOpacity
                         onPress={() => {
-                          router.push({
-                            pathname: "/trafficSignalDetail",
-                            params: { signal: JSON.stringify(item) },
-                          });
+                          if (!isLoading) {
+                            router.push({
+                              pathname: "/trafficLightDetail",
+                              params: {
+                                index: index.toString(),
+                                signals: JSON.stringify(fill),
+                              },
+                            });
+                          } else {
+                            // Hiển thị thông báo khi người dùng cố gắng chuyển hướng khi dữ liệu chưa tải
+                            alert("Đang tải dữ liệu, vui lòng đợi.");
+                          }
                         }}
                       >
                         <Text

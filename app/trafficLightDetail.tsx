@@ -11,7 +11,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import apiClient from "./../api/apiClient";
 import * as ImagePicker from "expo-image-picker";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Picker } from "@react-native-picker/picker";
 import MapView, { Marker } from "react-native-maps";
 import { Colors } from "./../constants/Colors";
@@ -53,7 +53,7 @@ interface ApiUpdateResponse {
   content: string;
 }
 
-const TrafficSignalDetail = () => {
+const TrafficLightDetail = () => {
   const [selectedMedia, setSelectedMedia] = useState<
     ImagePicker.ImagePickerAsset[]
   >([]);
@@ -74,16 +74,24 @@ const TrafficSignalDetail = () => {
     useCallback(() => {
       if (signals && index) {
         try {
-          const parsed = JSON.parse(signals as string);
+          const parsedSignals = useMemo(() => {
+            try {
+              return JSON.parse(signals as string);
+            } catch (error) {
+              console.error("Lỗi phân tích signals:", error);
+              return [];
+            }
+          }, [signals]);
+
           const currentIndex = parseInt(index as string);
-          const currentSignal = parsed[currentIndex];
+          const currentSignal = parsedSignals[currentIndex];
           // const currentSignal = parsed.find(
           //   (s: {
           //     identificationCode: { toString: () => string | string[] };
           //   }) => s.identificationCode.toString() === index
           // );
 
-          setParsedSignals(parsed);
+          setParsedSignals(parsedSignals);
           setCurrentIndex(currentIndex);
           setSignal(currentSignal);
           setRepairStatus(currentSignal?.repairStatus ?? 2);
@@ -94,57 +102,57 @@ const TrafficSignalDetail = () => {
     }, [signals, index])
   );
 
-  const handleSave = async () => {
-    try {
-      const requestBody = {
-        id: signal.identificationCode, // ID của đèn tín hiệu
-        status: repairStatus, // Trạng thái của đèn tín hiệu
-        faultCodes: 0,
-        // repairStatus: 3,
-        // user_id: 1, // ID người dùng, có thể thay đổi theo logic
-        // remark: signal.remark || "已完成更換燈泡",
-      };
-      console.log("Request Body:", requestBody);
-      if (repairStatus == 1 || repairStatus == 0) {
-        alert("請選擇更新狀態");
-        return;
-      }
-      const response = await apiClient.put<ApiUpdateResponse>(
-        `RepairDetails/UpdateByAccout`,
-        requestBody
-      );
-      if (response.data.success === false) {
-        throw new Error("Failed to update signal");
-      }
-      router.back();
-      console.log("Response:", response.data);
-      alert("Save Success");
-    } catch (error) {
-      console.log(error);
-      alert("Save Failed");
-    }
-  };
+  //   const handleSave = async () => {
+  //     try {
+  //       const requestBody = {
+  //         id: signal.identificationCode, // ID của đèn tín hiệu
+  //         status: repairStatus, // Trạng thái của đèn tín hiệu
+  //         faultCodes: 0,
+  //         // repairStatus: 3,
+  //         // user_id: 1, // ID người dùng, có thể thay đổi theo logic
+  //         // remark: signal.remark || "已完成更換燈泡",
+  //       };
+  //       console.log("Request Body:", requestBody);
+  //       if (repairStatus == 1 || repairStatus == 0) {
+  //         alert("請選擇更新狀態");
+  //         return;
+  //       }
+  //       const response = await apiClient.put<ApiUpdateResponse>(
+  //         `RepairDetails/UpdateByAccout`,
+  //         requestBody
+  //       );
+  //       if (response.data.success === false) {
+  //         throw new Error("Failed to update signal");
+  //       }
+  //       router.back();
+  //       console.log("Response:", response.data);
+  //       alert("Save Success");
+  //     } catch (error) {
+  //       console.log(error);
+  //       alert("Save Failed");
+  //     }
+  //   };
 
-  const pickMedia = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsMultipleSelection: true,
-      quality: 1,
-    });
+  //   const pickMedia = async () => {
+  //     const result = await ImagePicker.launchImageLibraryAsync({
+  //       mediaTypes: ImagePicker.MediaTypeOptions.All,
+  //       allowsMultipleSelection: true,
+  //       quality: 1,
+  //     });
 
-    if (!result.canceled) {
-      const allAssets = [...selectedMedia, ...result.assets];
-      const uniqueAssets = Array.from(
-        new Map(allAssets.map((asset) => [asset.uri, asset])).values()
-      );
-      const limitedAssets = uniqueAssets.slice(0, 8);
-      setSelectedMedia(limitedAssets);
+  //     if (!result.canceled) {
+  //       const allAssets = [...selectedMedia, ...result.assets];
+  //       const uniqueAssets = Array.from(
+  //         new Map(allAssets.map((asset) => [asset.uri, asset])).values()
+  //       );
+  //       const limitedAssets = uniqueAssets.slice(0, 8);
+  //       setSelectedMedia(limitedAssets);
 
-      if (limitedAssets.length < uniqueAssets.length) {
-        Alert.alert("限制", "最多只能上傳 8 張圖片或影片");
-      }
-    }
-  };
+  //       if (limitedAssets.length < uniqueAssets.length) {
+  //         Alert.alert("限制", "最多只能上傳 8 張圖片或影片");
+  //       }
+  //     }
+  //   };
 
   if (!signal) {
     return <Text>Loading...</Text>;
@@ -165,7 +173,7 @@ const TrafficSignalDetail = () => {
           disabled={currentIndex === 0}
           onPress={() =>
             router.push({
-              pathname: "/trafficSignalDetail",
+              pathname: "/trafficLightDetail",
               params: {
                 index: (currentIndex - 1).toString(),
                 signals: JSON.stringify(parsedSignals),
@@ -183,18 +191,18 @@ const TrafficSignalDetail = () => {
             上一筆
           </Text>
           {/* <FontAwesome5
-            name="arrow-left"
-            size={20}
-            color={Colors.primaryColor}
-            style={{ alignSelf: "center" }}
-          /> */}
+              name="arrow-left"
+              size={20}
+              color={Colors.primaryColor}
+              style={{ alignSelf: "center" }}
+            /> */}
         </TouchableOpacity>
         <Text style={styles.text}>識別碼: {signal.identificationCode}</Text>
         <TouchableOpacity
           disabled={currentIndex === parsedSignals.length - 1}
           onPress={() =>
             router.push({
-              pathname: "/trafficSignalDetail",
+              pathname: "/trafficLightDetail",
               params: {
                 index: (currentIndex + 1).toString(),
                 signals: JSON.stringify(parsedSignals),
@@ -213,11 +221,11 @@ const TrafficSignalDetail = () => {
             下一筆
           </Text>
           {/* <FontAwesome5
-            name="arrow-right"
-            size={20}
-            color={Colors.primaryColor}
-            style={{ alignSelf: "center" }}
-          /> */}
+              name="arrow-right"
+              size={20}
+              color={Colors.primaryColor}
+              style={{ alignSelf: "center" }}
+            /> */}
         </TouchableOpacity>
       </View>
 
@@ -255,11 +263,11 @@ const TrafficSignalDetail = () => {
         </MapView>
       ) : null}
 
-      <Button
+      {/* <Button
         color={Colors.primaryColor}
         title="選擇圖片/影片 (最多8個)"
         onPress={pickMedia}
-      />
+      /> */}
 
       <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 10 }}>
         {selectedMedia.map((img, index) => (
@@ -293,7 +301,7 @@ const TrafficSignalDetail = () => {
         ))}
       </View>
 
-      {signal && (
+      {/* {signal && (
         <>
           <Text style={[styles.text, { marginTop: 12 }]}>選擇更新狀態：</Text>
           <Picker
@@ -304,38 +312,19 @@ const TrafficSignalDetail = () => {
             <Picker.Item label="工程師正在維修中" value={2} />
             <Picker.Item label="已完成維修" value={3} />
           </Picker>
-          {signal.faultCodes === 0 ? (
-            <Button
-              color={Colors.primaryColor}
-              title="號誌已正常"
-              onPress={() =>
-                Alert.alert(
-                  "錯誤",
-                  "號誌已正常，無法更新狀態",
-                  [
-                    {
-                      text: "確認",
-                      // onPress: () => console.log("OK Pressed"),
-                    },
-                  ],
-                  { cancelable: false }
-                )
-              }
-            />
-          ) : (
-            <Button
-              color={Colors.primaryColor}
-              title="完畢"
-              onPress={handleSave}
-            />
-          )}
+
+          <Button
+            color={Colors.primaryColor}
+            title="Done"
+            onPress={handleSave}
+          />
         </>
-      )}
+      )} */}
     </ScrollView>
   );
 };
 
-export default TrafficSignalDetail;
+export default TrafficLightDetail;
 
 const styles = StyleSheet.create({
   container: {

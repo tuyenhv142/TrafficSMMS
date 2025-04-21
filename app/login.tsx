@@ -8,6 +8,8 @@ import {
   Alert,
   Image,
   TouchableOpacity,
+  PixelRatio,
+  Dimensions,
 } from "react-native";
 // import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 import { Redirect, useRouter } from "expo-router"; // Import useRouter từ expo-router
@@ -15,6 +17,8 @@ import { login } from "./../api/authService";
 import { useAuth } from "./../context/AuthProvider";
 import { CheckBox, Icon } from "@rneui/themed"; // Import useAuth từ AuthContext
 
+const { width, height } = Dimensions.get("window");
+const ratio = PixelRatio.get();
 const Login = () => {
   const { token, signin, logout } = useAuth(); // Lấy token và signIn từ AuthContext
   const [name, setName] = React.useState("");
@@ -105,14 +109,17 @@ const styles = StyleSheet.create({
     // backgroundColor: "#fff",
   },
   container2: {
-    height: "65%",
-    padding: 35,
+    height: height * 0.65,
+    paddingHorizontal: width * 0.1,
+    paddingTop: 35,
     backgroundColor: "#fff",
   },
 
   iconLogin: {
-    width: 40,
-    height: 40,
+    width: width * 0.1,
+    height: width * 0.1,
+    resizeMode: "contain",
+    marginBottom: 10,
   },
   text: {
     fontSize: 30,
@@ -120,19 +127,21 @@ const styles = StyleSheet.create({
   },
   text1: {
     fontSize: 15,
-    marginTop: 15,
+    marginTop: 25,
 
     // fontWeight: "bold",
   },
   imgLogin: {
-    height: "75%",
-    width: "100%",
-    // justifyContent: "center",
+    width: width * 1.0,
+    height: height * 0.44,
+    resizeMode: "contain",
+    alignSelf: "center",
   },
   bottom: {
-    height: "100%",
+    flex: 1,
     backgroundColor: "#5958b2",
-    padding: 50,
+    paddingHorizontal: width * 0.1,
+    paddingTop: 30,
   },
   title: {
     fontSize: 24,
