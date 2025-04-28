@@ -79,7 +79,7 @@ interface Engineer {
 
 const screenWidth = Dimensions.get("window").width;
 
-const TrafficSignalDetail = () => {
+const TrafficSignalEngineer = () => {
   const [selectedMedia, setSelectedMedia] = useState<
     ImagePicker.ImagePickerAsset[]
   >([]);
@@ -129,7 +129,7 @@ const TrafficSignalDetail = () => {
           setCurrentIndex(currentIndex);
           setSignal(currentSignal);
           setRepairStatus(currentSignal?.repairStatus ?? 2);
-          searchEngineer();
+          //   searchEngineer();
         } catch (error) {
           console.error("Error parsing signals or index:", error);
         } finally {
@@ -167,23 +167,23 @@ const TrafficSignalDetail = () => {
       setCurrentIndex1(currentIndex1 - 1);
     }
   };
-  const handleConfirm = async (status: number) => {
+  const handleConfirm = async () => {
     try {
       const requestBody = {
         id: signal.identificationCode, // ID của đèn tín hiệu
-        status: status, // Trạng thái của đèn tín hiệu
-        // faultCodes: 0,
+        status: repairStatus, // Trạng thái của đèn tín hiệu
+        faultCodes: 0,
         // repairStatus: 3,
         // user_id: 1, // ID người dùng, có thể thay đổi theo logic
         // remark: signal.remark || "已完成更換燈泡",
       };
       console.log("Request Body:", requestBody);
-      // if (repairStatus == 1 || repairStatus == 0) {
-      //   alert("請選擇更新狀態");
-      //   return;
-      // }
+      if (repairStatus !== 3) {
+        alert("請選擇更新狀態");
+        return;
+      }
       const response = await apiClient.put<ApiUpdateResponse>(
-        "/RepairDetails/Update",
+        "/RepairDetails/UpdateByAccout",
         requestBody
       );
       if (response.data.success === false) {
@@ -195,31 +195,6 @@ const TrafficSignalDetail = () => {
     } catch (error) {
       console.log(error);
       alert("Save Failed");
-    }
-  };
-
-  const searchEngineer = async () => {
-    try {
-      const response = await apiClient.get<ApiResponse>("/User/searchName");
-      if (response.data?.content?.data) {
-        setEngineer(
-          response.data.content.data.map((item) => ({
-            id: item.id,
-            name: item.name,
-            total: item.total,
-            role: item.role,
-          }))
-        );
-        // console.log("response", response);
-      } else {
-        console.log("No traffic signal data available.");
-      }
-      const data = response.data as { content: string };
-      // console.log("Search Results:", data.content);
-      return response.data;
-    } catch (error) {
-      console.error("Error during search:", error);
-      throw new Error("Failed to fetch search results");
     }
   };
 
@@ -299,7 +274,7 @@ const TrafficSignalDetail = () => {
           disabled={currentIndex === 0}
           onPress={() =>
             router.push({
-              pathname: "/trafficSignalDetail",
+              pathname: "/trafficSignalEngineer",
               params: {
                 index: (currentIndex - 1).toString(),
                 signals: JSON.stringify(parsedSignals),
@@ -316,27 +291,18 @@ const TrafficSignalDetail = () => {
           >
             上一筆
           </Text>
-          {/* <FontAwesome5
-            name="arrow-left"
-            size={20}
-            color={Colors.primaryColor}
-            style={{ alignSelf: "center" }}
-          /> */}
         </TouchableOpacity>
         <Text style={styles.text}>識別碼: {signal.identificationCode}</Text>
         <TouchableOpacity
           disabled={currentIndex === parsedSignals.length - 1}
-          onPress={
-            () =>
-              // setQuery(""),
-              router.push({
-                pathname: "/trafficSignalDetail",
-                params: {
-                  index: (currentIndex + 1).toString(),
-                  signals: JSON.stringify(parsedSignals),
-                },
-              })
-            // setQuery(null)
+          onPress={() =>
+            router.push({
+              pathname: "/trafficSignalEngineer",
+              params: {
+                index: (currentIndex + 1).toString(),
+                signals: JSON.stringify(parsedSignals),
+              },
+            })
           }
         >
           <Text
@@ -349,12 +315,6 @@ const TrafficSignalDetail = () => {
           >
             下一筆
           </Text>
-          {/* <FontAwesome5
-            name="arrow-right"
-            size={20}
-            color={Colors.primaryColor}
-            style={{ alignSelf: "center" }}
-          /> */}
         </TouchableOpacity>
       </View>
 
@@ -369,80 +329,8 @@ const TrafficSignalDetail = () => {
         <Text style={styles.text}>Note: {signal.remark}</Text>
       ) : null}
       {/* <Text style={styles.text}>
-        更新狀態: {getRepairStatusDescription(signal.repairStatus)}
-      </Text> */}
-
-      {signal.repairStatus === 1 && (
-        <>
-          <TouchableOpacity
-            style={{
-              backgroundColor: "#ccc",
-              padding: 10,
-              borderRadius: 8,
-              alignItems: "center",
-              marginBottom: 10,
-            }}
-            onPress={() => setModalVisible(true)}
-          >
-            <Text>選擇工程師</Text>
-          </TouchableOpacity>
-
-          <TextInput
-            placeholder="工程師已選擇"
-            // focusable={false}
-            value={query}
-            // onChangeText={handleSearch}
-            style={styles.searchBar}
-            editable={false}
-          />
-
-          <Modal visible={modalVisible} animationType="slide">
-            <View style={{ flex: 1, padding: 20, backgroundColor: "white" }}>
-              <Text
-                style={{
-                  marginBottom: 15,
-                  textAlign: "center",
-                  fontWeight: "bold",
-                  fontSize: 18,
-                }}
-              >
-                請選擇工程師
-              </Text>
-
-              <TextInput
-                placeholder="搜尋工程師"
-                value={query}
-                onChangeText={handleSearch}
-                style={styles.searchBar}
-              />
-
-              <FlatList
-                data={filteredData}
-                keyExtractor={(item) => item.name.toString()}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={{
-                      paddingVertical: 12,
-                      borderBottomWidth: 1,
-                      borderColor: "#eee",
-                    }}
-                    onPress={() => {
-                      setQuery(item.name.toString());
-                      setIdEngineer(item.id);
-                      setFilteredData([]);
-                      setModalVisible(false); // Đóng modal sau khi chọn
-                    }}
-                  >
-                    <Text>{item.name}</Text>
-                  </TouchableOpacity>
-                )}
-              />
-
-              <Button title="關閉" onPress={() => setModalVisible(false)} />
-            </View>
-          </Modal>
-        </>
-      )}
+          更新狀態: {getRepairStatusDescription(signal.repairStatus)}
+        </Text> */}
 
       {signal.latitude && signal.longitude ? (
         <MapView
@@ -604,60 +492,15 @@ const TrafficSignalDetail = () => {
               </View>
             </>
           )}
-          {/* <TouchableOpacity
-            style={{
-              flex: 1,
-              backgroundColor: "rgba(0,0,0,0.9)",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-            onPress={() => setPreviewVisible(false)}
-          > */}
-          {/* {previewMedia ? (
-            previewMedia.endsWith(".mp4") ? (
-              <Video
-                source={{ uri: previewMedia }}
-                style={{ width: "90%", height: 300 }}
-                useNativeControls
-                resizeMode={ResizeMode.CONTAIN}
-              />
-            ) : (
-              <Image
-                source={{ uri: previewMedia }}
-                style={{ width: "90%", height: 300, borderRadius: 10 }}
-                resizeMode="contain"
-              />
-            )
-          ) : null} */}
-
-          {/* </TouchableOpacity> */}
         </View>
       </Modal>
-
-      {
-        signal.repairStatus === 0 ? (
-          <View
-            style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              marginTop: 10,
-              justifyContent: "center",
-            }}
-          >
-            <View style={{ margin: 5 }}>
-              <Text style={{ textAlign: "center" }}>
-                請確認一下交通號誌是否有問題？
-              </Text>
-            </View>
-          </View>
-        ) : null
-        // <Text style={{ textAlign: "center", margin: 10 }}>請選擇工程師</Text>
-        // <Button
-        //   color={Colors.primaryColor}
-        //   title="選擇圖片/影片 (最多8個)"
-        //   onPress={pickMedia}
-        // />
-      }
+      <View style={{ marginTop: 20 }}>
+        <Button
+          color={Colors.primaryColor}
+          title="選擇圖片/影片 (最多8個)"
+          onPress={pickMedia}
+        />
+      </View>
 
       <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 10 }}>
         {selectedMedia.map((img, index) => (
@@ -690,71 +533,34 @@ const TrafficSignalDetail = () => {
           </View>
         ))}
       </View>
-      {/* {signal.repairStatus === 0 && (
-        <Button color={Colors.primaryColor} title="完畢" onPress={handleSave} />
-      )} */}
 
-      {signal && (
-        <>
-          {signal.repairStatus === 0 ? (
-            <View
-              style={{
-                marginBottom: 40,
-                display: "flex",
-                flexDirection: "row",
-                // gap: 10,
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <View style={{ width: "48%" }}>
-                <Button
-                  color={Colors.primaryColor}
-                  title="確認"
-                  onPress={() => handleConfirm(1)}
-                />
-              </View>
-              <View style={{ width: "48%" }}>
-                <Button
-                  color="red"
-                  title="拒絕"
-                  onPress={() => handleConfirm(4)}
-                />
-              </View>
-            </View>
-          ) : (
-            <View
-              style={{
-                marginBottom: 40,
-              }}
-            >
-              {/* <Text style={[styles.text, { marginTop: 12 }]}>
-                選擇更新狀態：
-              </Text>
-              <Picker
-                selectedValue={repairStatus}
-                onValueChange={(value) => setRepairStatus(value)}
-                style={styles.picker}
-              >
-                <Picker.Item label="工程師正在維修中" value={2} />
-                <Picker.Item label="已完成維修" value={3} />
-              </Picker> */}
+      <View
+        style={{
+          marginBottom: 40,
+        }}
+      >
+        <Text style={[styles.text, { marginTop: 12 }]}>選擇更新狀態：</Text>
+        <Picker
+          selectedValue={repairStatus}
+          onValueChange={(value) => setRepairStatus(value)}
+          style={styles.picker}
+        >
+          {/* <Picker.Item label="工程師正在維修中" value={2} /> */}
+          <Picker.Item label="已完成維修" value={3} />
+        </Picker>
 
-              {/* {/* <View style={{ borderRadius: 100 }}> */}
-              <Button
-                color={Colors.primaryColor}
-                title="確認"
-                onPress={() => handleChooseEngineer()}
-              />
-            </View>
-          )}
-        </>
-      )}
+        {/* {/* <View style={{ borderRadius: 100 }}> */}
+        <Button
+          color={Colors.primaryColor}
+          title="確認"
+          onPress={() => handleConfirm()}
+        />
+      </View>
     </ScrollView>
   );
 };
 
-export default TrafficSignalDetail;
+export default TrafficSignalEngineer;
 
 const styles = StyleSheet.create({
   container: {

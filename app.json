@@ -20,6 +20,7 @@
         "foregroundImage": "./assets/images/splashscreen_logo.png",
         "backgroundColor": "#ffffff"
       },
+      "googleServicesFile": "./google-services.json",
       "package": "com.tuyn.TrafficMap"
     },
     "web": {
@@ -28,6 +29,7 @@
       "favicon": "./assets/images/splashscreen_logo.png"
     },
     "plugins": [
+      "@react-native-firebase/app",
       "expo-router",
       [
         "expo-splash-screen",

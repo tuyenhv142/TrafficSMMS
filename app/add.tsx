@@ -89,15 +89,21 @@ const add = () => {
     setSignal(signalFromRoute); // Cập nhật state signal
   }, [rawSignal]);
 
+  const fetchUserId = async () => {
+    try {
+      const storedUserId = await AsyncStorage.getItem("user_id");
+      console.log("Fetched user_id from storage:", storedUserId);
+      setUserid(storedUserId);
+    } catch (error) {
+      console.error("Error fetching user_id:", error);
+    }
+  };
+
   // Fetch user ID from AsyncStorage
   useEffect(() => {
     setIsLoading(true);
-    const fetchUserId = async () => {
-      const storedUserId = await AsyncStorage.getItem("user_id");
-      setUserid(storedUserId); // Set the user ID in the state
-    };
-
     fetchUserId();
+    console.log("User ID:", userid); // Log the user ID
     setIsLoading(false);
   }, []);
 
@@ -119,9 +125,9 @@ const add = () => {
     formData.append("traff_id", signal.id.toString());
     formData.append("FaultCodes", faultCode.toString());
     formData.append("RepairStatus", parseInt(repairStatus).toString());
-    formData.append("user_id", "");
+    formData.append("user_id", userid?.toString() || ""); // Use the fetched user ID
     formData.append("Remark", remark);
-    formData.append("test", "ok");
+    // formData.append("test", "ok");
 
     selectedImages.forEach((image, index) => {
       const isLocalFile = image.uri.startsWith("file://");

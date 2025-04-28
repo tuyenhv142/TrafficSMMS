@@ -34,7 +34,7 @@ const Content = () => {
           <TouchableOpacity
             onPress={() => {
               router.push({
-                pathname: "/trafficLightErrorList",
+                pathname: "/trafficListEngineer",
               });
             }}
           >

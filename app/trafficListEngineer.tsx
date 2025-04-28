@@ -58,7 +58,7 @@ const getRepairStatusDescription = (status: number) => {
       return "null";
   }
 };
-const trafficLightErrorList = () => {
+const trafficListEngineer = () => {
   const router = useRouter();
   const { role } = useAuth();
   const [trafficSignals, setTrafficSignals] = useState<TrafficSignal[]>([]);
@@ -125,7 +125,7 @@ const trafficLightErrorList = () => {
   useFocusEffect(
     useCallback(() => {
       console.log("Current Role:", role);
-      if (role !== "1") {
+      if (role === 3) {
         alert("您沒有權限訪問此頁面。");
         // router.replace("/");
       }
@@ -153,7 +153,7 @@ const trafficLightErrorList = () => {
   const fetchRepairDetail = async () => {
     try {
       const response = await apiClient.get<ApiResponse>(
-        "/RepairDetails/FindAll?page=1&pageSize=200"
+        "/RepairDetails/FindAllNoDoneByAccount?page=1&pageSize=200"
       );
       // console.log("Response:", response.data);
       if (response.data?.content?.data) {
@@ -222,11 +222,11 @@ const trafficLightErrorList = () => {
 
       const statusMap: Record<string, number> = {
         // 尚未確認: 0,
-        故障通報: 0,
+        // 故障通報: 0,
         故障確認: 1,
-        維修中: 2,
+        // 維修中: 2,
         維修完成: 3,
-        closed: 4,
+        // closed: 4,
       };
 
       return item.repairStatus === statusMap[selectFill];
@@ -239,7 +239,7 @@ const trafficLightErrorList = () => {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
 
-  const isAuthorized = role === "1";
+  const isAuthorized = role === "2" || role === "1";
 
   if (!isAuthorized) {
     return <Text style={styles.errorText}>您沒有權限訪問此頁面。</Text>;
@@ -277,15 +277,10 @@ const trafficLightErrorList = () => {
       >
         {[
           "全部",
-          "故障通報",
+          //   "故障通報",
           "故障確認",
-          "維修中",
+          //   "維修中",
           "維修完成",
-          "closed",
-          // "尚未確認",
-          // "已分配工程師",
-          // "工程師正在維修中",
-          // "已完成維修",
         ].map((status) => (
           <TouchableOpacity
             key={status}
@@ -451,11 +446,11 @@ const trafficLightErrorList = () => {
                     </Text> */}
                     {/* </View> */}
                     <View
-                      style={{
-                        display: "flex",
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                      }}
+                    //   style={{
+                    //     display: "flex",
+                    //     flexDirection: "row",
+                    //     justifyContent: "space-between",
+                    //   }}
                     >
                       <View>
                         {item.userId == null ? (
@@ -472,36 +467,93 @@ const trafficLightErrorList = () => {
                               上次故障原因:{" "}
                               {getFaultCodeDescription2(item.faultCodes)}
                             </Text>
-                            <Text style={styles.statusText1}>
+                            {/* <Text style={styles.statusText1}>
                               維修工程師:{" "}
                               {item.userId == 1 ? "杜文長" : "黃文選"}
-                            </Text>
+                            </Text> */}
                           </>
                         )}
                       </View>
-                      <TouchableOpacity
-                        onPress={() => {
-                          router.push({
-                            pathname: "/trafficSignalDetail",
-                            params: {
-                              index: index.toString(),
-                              signals: JSON.stringify(fill),
-                            },
-                          });
+                      <View
+                        style={{
+                          display: "flex",
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          marginTop: 10,
+                          borderTopColor: "#000",
+                          borderTopWidth: 0.5,
                         }}
                       >
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            color: "#000",
-                            marginTop: 5,
-                            borderBottomColor: "#000",
-                            borderBottomWidth: 1,
+                        <TouchableOpacity
+                        //   onPress={() => {
+                        //     router.push({
+                        //       pathname: "/trafficSignalDetail",
+                        //       params: {
+                        //         index: index.toString(),
+                        //         signals: JSON.stringify(fill),
+                        //       },
+                        //     });
+                        //   }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 14,
+                              color: "#000",
+                              marginTop: 5,
+                              borderBottomColor: "#000",
+                              borderBottomWidth: 1,
+                            }}
+                          >
+                            規劃路徑
+                          </Text>
+                        </TouchableOpacity>
+                        {/* <TouchableOpacity
+                          onPress={() => {
+                            router.push({
+                              pathname: "/trafficSignalDetail",
+                              params: {
+                                index: index.toString(),
+                                signals: JSON.stringify(fill),
+                              },
+                            });
                           }}
                         >
-                          顯示詳細資料
-                        </Text>
-                      </TouchableOpacity>
+                          <Text
+                            style={{
+                              fontSize: 14,
+                              color: "#000",
+                              marginTop: 5,
+                              borderBottomColor: "#000",
+                              borderBottomWidth: 1,
+                            }}
+                          >
+                            顯示詳細資料
+                          </Text>
+                        </TouchableOpacity> */}
+                        <TouchableOpacity
+                          onPress={() => {
+                            router.push({
+                              pathname: "/trafficSignalEngineer",
+                              params: {
+                                index: index.toString(),
+                                signals: JSON.stringify(fill),
+                              },
+                            });
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 14,
+                              color: "#000",
+                              marginTop: 5,
+                              borderBottomColor: "#000",
+                              borderBottomWidth: 1,
+                            }}
+                          >
+                            顯示詳細資料
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
 
                     {/* <Text style={styles.statusText1}>
@@ -513,7 +565,6 @@ const trafficLightErrorList = () => {
               </View>
             </View>
           )}
-
           // renderItem={({ item }) => (
           //   <TouchableOpacity
           //     style={[
@@ -542,16 +593,16 @@ const trafficLightErrorList = () => {
           //     </View>
           //   </TouchableOpacity>
           // )}
-          // ListEmptyComponent={
-          //   <Text style={styles.emptyText}>No results found</Text>
-          // }
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No results found</Text>
+          }
         />
       )}
     </View>
   );
 };
 
-export default trafficLightErrorList;
+export default trafficListEngineer;
 
 const styles = StyleSheet.create({
   container: {

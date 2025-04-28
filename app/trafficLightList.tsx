@@ -14,6 +14,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useAuth } from "../context/AuthProvider";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Colors } from "./../constants/Colors";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 
 const getFaultCodeDescription = (code: number) => {
   switch (code) {
@@ -72,6 +73,9 @@ const trafficLightList = () => {
         signalNumber: string;
         latitude: number;
         longitude: number;
+        road1: string;
+        road2: string;
+        district1: string;
         typesOfSignal: string;
         statusError: number;
         statusErrorUpdate: number;
@@ -88,6 +92,9 @@ const trafficLightList = () => {
     signalNumber: string;
     latitude: number;
     longitude: number;
+    road1: string;
+    road2: string;
+    district1: string;
     typesOfSignal: string;
     statusError: number;
     statusErrorUpdate: number;
@@ -114,15 +121,15 @@ const trafficLightList = () => {
       // // Gọi API mỗi khi tab được focus
     }, [])
   );
-  useFocusEffect(
-    useCallback(() => {
-      console.log("Current Role:", role);
-      if (role !== "1" && role !== "2") {
-        alert("您沒有權限訪問此頁面。");
-        // router.replace("/");
-      }
-    }, [role])
-  );
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     console.log("Current Role:", role);
+  //     if (role !== "1" && role !== "2") {
+  //       alert("您沒有權限訪問此頁面。");
+  //       // router.replace("/");
+  //     }
+  //   }, [role])
+  // );
 
   const confirmRepairStatus = async (id: number) => {
     try {
@@ -221,12 +228,32 @@ const trafficLightList = () => {
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.searchBar}
-        placeholder="依訊號編號搜尋..."
-        value={searchText}
-        onChangeText={setSearchText}
-      />
+      <View
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <TextInput
+          style={styles.searchBar}
+          placeholder="依訊號編號搜尋..."
+          value={searchText}
+          onChangeText={setSearchText}
+        />
+        <TouchableOpacity
+          onPress={() => {
+            const allExpanded = trafficSignals.every((s) => s.expanded);
+            setTrafficSignals((prev) =>
+              prev.map((signal) => ({ ...signal, expanded: !allExpanded }))
+            );
+          }}
+        >
+          <FontAwesome5 name="external-link-alt" size={24} color="black" />
+        </TouchableOpacity>
+      </View>
+
       {/* <View
         style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 10 }}
       >
@@ -290,26 +317,29 @@ const trafficLightList = () => {
                       alignItems: "center",
                     }}
                   >
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        // fontWeight: "bold",
-                        color: "#000",
-                        width: "30%",
-                      }}
-                    >
-                      SignalNo: {item.signalNumber}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        // fontWeight: "bold",
-                        color: "#000",
-                        width: "33%",
-                      }}
-                    >
-                      Type: {item.typesOfSignal}
-                    </Text>
+                    <View>
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          // fontWeight: "bold",
+                          color: "#000",
+                          // width: "30%",
+                        }}
+                      >
+                        號誌編號: {item.signalNumber}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          // fontWeight: "bold",
+                          color: "#000",
+                          // width: "33%",
+                        }}
+                      >
+                        號誌類型: {item.typesOfSignal}
+                      </Text>
+                    </View>
+
                     <View
                       style={{
                         borderRadius: 50,
@@ -366,20 +396,26 @@ const trafficLightList = () => {
                       borderTopWidth: 0.5,
                     }}
                   >
-                    <View
+                    {/* <View
                       style={{
                         display: "flex",
                         flexDirection: "row",
                         justifyContent: "space-between",
                       }}
-                    >
-                      <Text style={styles.statusText1}>
-                        緯度: {item.latitude}
-                      </Text>
-                      <Text style={styles.statusText1}>
-                        經度: {item.longitude}
-                      </Text>
-                    </View>
+                    > */}
+                    <Text style={styles.statusText1}>
+                      緯度: {item.latitude}
+                    </Text>
+                    <Text style={styles.statusText1}>
+                      經度: {item.longitude}
+                    </Text>
+                    <Text style={styles.statusText1}>
+                      行政區: {item.district1}
+                    </Text>
+                    <Text style={styles.statusText1}>
+                      道路: {item.road1} , {item.road2}
+                    </Text>
+                    {/* </View> */}
                     <View
                       style={{
                         display: "flex",
@@ -552,5 +588,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingLeft: 10,
     marginBottom: 10,
+    width: "90%",
   },
 });

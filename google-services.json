@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "280239262173",
+    "project_id": "trafficsmms",
+    "storage_bucket": "trafficsmms.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:280239262173:android:2e026ea74f9eb0b368ce34",
+        "android_client_info": {
+          "package_name": "com.tuyn.TrafficMap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBu88hWVnk7BDs-KsEFRvR7s-igsATtQbI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
