@@ -21,7 +21,7 @@ import { Picker } from "@react-native-picker/picker";
 import MapView, { Marker } from "react-native-maps";
 import { Colors } from "./../constants/Colors";
 import { useFocusEffect } from "@react-navigation/native";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+// import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { Video, ResizeMode } from "expo-av";
 
 const getFaultCodeDescription = (code: number) => {
@@ -97,7 +97,7 @@ const TrafficSignalEngineer = () => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [signal, setSignal] = useState<any>(null);
   // console.log("Signal:", signal);
-  const [repairStatus, setRepairStatus] = useState<number | null>(null);
+  const [repairStatus, setRepairStatus] = useState<number | null>(3);
 
   const [query, setQuery] = useState("");
   const [idEngineer, setIdEngineer] = useState<number>(0);
@@ -171,17 +171,17 @@ const TrafficSignalEngineer = () => {
     try {
       const requestBody = {
         id: signal.identificationCode, // ID của đèn tín hiệu
-        status: repairStatus, // Trạng thái của đèn tín hiệu
+        status: 3, // Trạng thái của đèn tín hiệu
         faultCodes: 0,
         // repairStatus: 3,
         // user_id: 1, // ID người dùng, có thể thay đổi theo logic
         // remark: signal.remark || "已完成更換燈泡",
       };
       console.log("Request Body:", requestBody);
-      if (repairStatus !== 3) {
-        alert("請選擇更新狀態");
-        return;
-      }
+      // if (repairStatus !== 3) {
+      //   alert("請選擇更新狀態");
+      //   return;
+      // }
       const response = await apiClient.put<ApiUpdateResponse>(
         "/RepairDetails/UpdateByAccout",
         requestBody

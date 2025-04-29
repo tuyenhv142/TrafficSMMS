@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, Image } from "react-native";
 import React, { useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { useAuth } from "../context/AuthProvider";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+// import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 
 const LogoComponent = () => {
   const { role } = useAuth();

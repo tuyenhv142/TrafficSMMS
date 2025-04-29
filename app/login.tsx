@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  Button,
   StyleSheet,
   Alert,
   Image,
@@ -13,7 +12,6 @@ import {
 } from "react-native";
 // import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 import { Redirect, useRouter } from "expo-router"; // Import useRouter từ expo-router
-import { login } from "./../api/authService";
 import { useAuth } from "./../context/AuthProvider";
 import { CheckBox, Icon } from "@rneui/themed"; // Import useAuth từ AuthContext
 

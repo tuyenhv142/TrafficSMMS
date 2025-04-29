@@ -153,7 +153,7 @@ const add = () => {
     //   Remark: remark,
     // };
 
-    console.log(formData);
+    console.log("Data", formData);
 
     try {
       await apiClient.post("/RepairDetails/Add", formData, {

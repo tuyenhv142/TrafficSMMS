@@ -12,6 +12,7 @@ interface TrafficSignal {
   longitude: number;
   typesOfSignal: string;
   statusError: number;
+  // statusErrorFauCode: number;
   isError: boolean;
 }
 

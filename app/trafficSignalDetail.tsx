@@ -17,11 +17,11 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import apiClient from "./../api/apiClient";
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useEffect, useState } from "react";
-import { Picker } from "@react-native-picker/picker";
+// import { Picker } from "@react-native-picker/picker";
 import MapView, { Marker } from "react-native-maps";
 import { Colors } from "./../constants/Colors";
 import { useFocusEffect } from "@react-navigation/native";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+// import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { Video, ResizeMode } from "expo-av";
 
 const getFaultCodeDescription = (code: number) => {
@@ -65,7 +65,7 @@ interface ApiResponse {
       id: number;
       name: string;
       total: number;
-      role: number;
+      identity: number;
     }[];
   };
 }
@@ -74,7 +74,7 @@ interface Engineer {
   id: number;
   name: string;
   total: number;
-  role: number;
+  identity: number;
 }
 
 const screenWidth = Dimensions.get("window").width;
@@ -87,6 +87,7 @@ const TrafficSignalDetail = () => {
   const { index, signals } = useLocalSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [engineer, setEngineer] = useState<Engineer[]>([]);
+  console.log("Engineer:", engineer);
   // console.log("Params:", signals);
   // console.log("Index:", index);
 
@@ -102,15 +103,24 @@ const TrafficSignalDetail = () => {
   const [query, setQuery] = useState("");
   const [idEngineer, setIdEngineer] = useState<number>(0);
   const [filteredData, setFilteredData] = useState<Engineer[]>([]);
+  console.log("Filtered Data:", filteredData);
 
-  const handleSearch = (text: string) => {
-    setQuery(text);
-    const results = engineer.filter(
-      (item) =>
-        item.role === 2 && item.name.toLowerCase().includes(text.toLowerCase())
-    );
-    setFilteredData(results);
-  };
+  // const handleSearch = (text: string) => {
+  //   setQuery(text);
+  //   const results = engineer.filter(
+  //     (item) =>
+  //       item.identity == 2 &&
+  //       item.name.toLowerCase().includes(text.toLowerCase())
+  //   );
+  //   setFilteredData(results);
+  // };
+
+  const results = engineer.filter(
+    (item) =>
+      item.identity == 2 &&
+      item.name.toLowerCase().includes(query.toLowerCase())
+  );
+
   useFocusEffect(
     useCallback(() => {
       if (signals && index) {
@@ -167,11 +177,11 @@ const TrafficSignalDetail = () => {
       setCurrentIndex1(currentIndex1 - 1);
     }
   };
-  const handleConfirm = async (status: number) => {
+  const handleConfirm = async () => {
     try {
       const requestBody = {
         id: signal.identificationCode, // ID của đèn tín hiệu
-        status: status, // Trạng thái của đèn tín hiệu
+        // status: status, // Trạng thái của đèn tín hiệu
         // faultCodes: 0,
         // repairStatus: 3,
         // user_id: 1, // ID người dùng, có thể thay đổi theo logic
@@ -207,7 +217,7 @@ const TrafficSignalDetail = () => {
             id: item.id,
             name: item.name,
             total: item.total,
-            role: item.role,
+            identity: item.identity,
           }))
         );
         // console.log("response", response);
@@ -215,7 +225,7 @@ const TrafficSignalDetail = () => {
         console.log("No traffic signal data available.");
       }
       const data = response.data as { content: string };
-      // console.log("Search Results:", data.content);
+      console.log("Search Results:", data.content);
       return response.data;
     } catch (error) {
       console.error("Error during search:", error);
@@ -412,12 +422,12 @@ const TrafficSignalDetail = () => {
               <TextInput
                 placeholder="搜尋工程師"
                 value={query}
-                onChangeText={handleSearch}
+                onChangeText={setQuery}
                 style={styles.searchBar}
               />
 
               <FlatList
-                data={filteredData}
+                data={results}
                 keyExtractor={(item) => item.name.toString()}
                 renderItem={({ item }) => (
                   <TouchableOpacity
@@ -429,7 +439,7 @@ const TrafficSignalDetail = () => {
                     onPress={() => {
                       setQuery(item.name.toString());
                       setIdEngineer(item.id);
-                      setFilteredData([]);
+                      // setFilteredData([]);
                       setModalVisible(false); // Đóng modal sau khi chọn
                     }}
                   >
@@ -711,18 +721,18 @@ const TrafficSignalDetail = () => {
                 <Button
                   color={Colors.primaryColor}
                   title="確認"
-                  onPress={() => handleConfirm(1)}
+                  onPress={() => handleConfirm()}
                 />
               </View>
               <View style={{ width: "48%" }}>
                 <Button
                   color="red"
                   title="拒絕"
-                  onPress={() => handleConfirm(4)}
+                  // onPress={() => handleConfirm(4)}
                 />
               </View>
             </View>
-          ) : (
+          ) : signal.repairStatus === 1 ? (
             <View
               style={{
                 marginBottom: 40,
@@ -747,7 +757,7 @@ const TrafficSignalDetail = () => {
                 onPress={() => handleChooseEngineer()}
               />
             </View>
-          )}
+          ) : null}
         </>
       )}
     </ScrollView>

@@ -4,7 +4,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Alert } from "react-native";
 import Modal from "react-native-modal";
 import { getDistance } from "geolib";
 import mapStyle1 from "../mapStyle.json";
-import { types } from "@babel/core";
+// import { types } from "@babel/core";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Platform } from "react-native";
@@ -15,6 +15,7 @@ interface Signal {
   latitude: number;
   longitude: number;
   statusError: number;
+  // statusErrorFauCode: number;
   typesOfSignal: string;
   isError: boolean;
 }
@@ -48,6 +49,7 @@ const MapViewComponent = ({
   const router = useRouter();
   const mapRef = useRef<MapView>(null);
   const [selectedSignal, setSelectedSignal] = useState<Signal | null>(null);
+  console.log("selectedSignal", selectedSignal);
   const lastCenter = useRef<{ latitude: number; longitude: number } | null>(
     null
   );
@@ -130,7 +132,9 @@ const MapViewComponent = ({
               longitude: signal.longitude,
             }}
             title={signal.signalNumber}
-            pinColor={signal.isError ? "red" : "green"}
+            pinColor={
+              signal.isError && signal.statusError !== 0 ? "red" : "green"
+            }
             onPress={() => setSelectedSignal(signal)}
           />
         ))}
@@ -188,9 +192,19 @@ const MapViewComponent = ({
           <Text style={styles.modalText}>
             號誌種類: {selectedSignal?.typesOfSignal}
           </Text>
+          {/* {selectedSignal?.statusErrorFauCode === null ? (
+            <Text style={styles.modalText}>狀態: {"號誌正常"}</Text>
+          ) : (
+            <Text style={styles.modalText}>
+              狀態:{" "}
+              {getFaultCodeDescription(
+                selectedSignal?.statusErrorFauCode ?? -1
+              )}
+              {/* {selectedSignal?.statusError} 
+            </Text>
+          )} */}
           <Text style={styles.modalText}>
             狀態: {getFaultCodeDescription(selectedSignal?.statusError ?? -1)}
-            {/* {selectedSignal?.statusError} */}
           </Text>
 
           {!selectedSignal?.isError ? (

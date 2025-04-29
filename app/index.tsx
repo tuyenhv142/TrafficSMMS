@@ -1,27 +1,26 @@
-import { View, Text, Alert, PermissionsAndroid } from "react-native";
+import { Alert, PermissionsAndroid, ScrollView } from "react-native";
 import React, { useEffect } from "react";
-import "react-native-get-random-values";
-import { ScrollView } from "react-native";
 import Header from "../components/Home/Header";
 import Map from "../components/Home/Map";
 import Content from "../components/Home/Content";
 import Content2 from "../components/Home/Content2";
-import { useAuth } from "./../context/AuthProvider";
-import { Redirect } from "expo-router";
 import Content1 from "../components/Home/Content1";
-// import {
-//   getMessaging,
-//   AuthorizationStatus,
-// } from "@react-native-firebase/messaging";
-import messaging from "@react-native-firebase/messaging";
-import { getApp } from "@react-native-firebase/app";
+import { useAuth } from "../context/AuthProvider";
+import { Redirect } from "expo-router";
+import "react-native-get-random-values";
 
-// Khởi tạo Firebase app và messaging
+import { getApp } from "@react-native-firebase/app";
+import {
+  getMessaging,
+  getToken as fetchToken,
+  onTokenRefresh,
+  setBackgroundMessageHandler,
+} from "@react-native-firebase/messaging";
+import apiClient from "./../api/apiClient";
+
 const app = getApp();
-// const messagingInstance = getMessaging(app);
 
 const requestUserPermission = async () => {
-  // Xử lý quyền Android
   const granted = await PermissionsAndroid.request(
     PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
   );
@@ -31,57 +30,82 @@ const requestUserPermission = async () => {
   } else {
     console.log("Notification permission denied");
   }
-
-  // Xử lý quyền iOS
-  // const authStatus = await messagingInstance.requestPermission();
-  // const enabled =
-  //   authStatus === AuthorizationStatus.AUTHORIZED ||
-  //   authStatus === AuthorizationStatus.PROVISIONAL;
-
-  // if (enabled) {
-  //   console.log("Authorization status:", authStatus);
-  // }
 };
 
 const getToken = async () => {
   try {
-    const token = await messaging().getToken();
+    const messagingInstance = getMessaging(app);
+    const token = await fetchToken(messagingInstance);
     console.log("FCM Token:", token);
     return token;
   } catch (error) {
     console.error("Error fetching token:", error);
-    // Thử lại sau 2 giây
     await new Promise((resolve) => setTimeout(resolve, 2000));
     return getToken();
   }
 };
 
 const index = () => {
-  const { token } = useAuth();
+  const { token, role } = useAuth();
 
   useEffect(() => {
     requestUserPermission();
     getToken();
 
-    // Xử lý message nền
-    messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+    const messagingInstance = getMessaging(app);
+
+    fetchToken(messagingInstance)
+      .then(async (token) => {
+        console.log("FCM Token:", token);
+
+        const response = await apiClient.post("/User/AddToken", null, {
+          params: { token: token },
+        });
+        console.log("Token update response:", response.data);
+      })
+      .catch((error) => {
+        console.error("Error getting FCM token:", error);
+      });
+
+    setBackgroundMessageHandler(messagingInstance, async (remoteMessage) => {
       console.log("Message handled in the background!", remoteMessage);
     });
 
-    // Xử lý message foreground
-    // const unsubscribe = messagingInstance.onMessage(async (remoteMessage) => {
-    //  Alert.alert("A new FCM message arrived!", JSON.stringify(remoteMessage));
-    // });
+    const unsubscribeOnTokenRefresh = onTokenRefresh(
+      messagingInstance,
+      (newToken) => {
+        console.log("New FCM Token:", newToken);
+      }
+    );
 
-    // const unsubscribe = messagingInstance.onTokenRefresh((token) => {
-    //   console.log("New FCM Token:", token);
-    // });
+    // 👇 Thêm đoạn lắng nghe khi app đang mở
+    const unsubscribeOnMessage = messagingInstance.onMessage(
+      async (remoteMessage) => {
+        console.log("Foreground message received:", remoteMessage);
 
-    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
-      Alert.alert("A new FCM message arrived!", JSON.stringify(remoteMessage));
-    });
+        // if (role === 2)
+        Alert.alert(
+          "A new FCM message arrived!",
+          remoteMessage.notification?.title || "",
+          [
+            {
+              text: "Cancel",
+              onPress: () => console.log("Cancel Pressed"),
+              style: "cancel",
+            },
+            {
+              text: "OK",
+              onPress: () => console.log("OK Pressed"),
+            },
+          ]
+        );
+      }
+    );
 
-    return unsubscribe;
+    return () => {
+      unsubscribeOnTokenRefresh();
+      unsubscribeOnMessage();
+    };
   }, []);
 
   if (!token) {

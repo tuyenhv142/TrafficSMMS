@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import React, { useState } from "react";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import { Colors } from "../../constants/Colors";
+// import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+// import { Colors } from "../../constants/Colors";
 import MapView, { Marker } from "react-native-maps";
 import { Picker } from "@react-native-picker/picker";
 
@@ -20,10 +20,9 @@ const Content2 = () => {
   };
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <Text style={styles.text}>車流量圖層</Text>
-        {/* <FontAwesome5 name="bars" size={28} color={Colors.primaryColor} /> */}
-      </View>
+      </View> */}
 
       <Picker
         selectedValue={selectCity}
@@ -73,7 +72,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   picker: {
-    height: 60,
+    height: 50,
     width: "100%",
     marginVertical: 10,
   },

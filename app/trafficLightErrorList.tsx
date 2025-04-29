@@ -100,6 +100,7 @@ const trafficLightErrorList = () => {
     signalNumber: string;
     typesOfSignal: string;
     userId: number;
+    user_name: string;
     faultCodes: number;
     repairStatus: number;
     remark: string;
@@ -168,6 +169,7 @@ const trafficLightErrorList = () => {
             signalNumber: item.signalNumber,
             typesOfSignal: item.managementUnit,
             userId: item.user_id,
+            user_name: item.user_name,
             faultCodes: item.faultCodes,
             repairStatus: item.repairStatus,
             remark: item.typesOfSignal,
@@ -207,13 +209,13 @@ const trafficLightErrorList = () => {
   // const filteredSignals = trafficSignals.filter(
   //   (item) => item.faultCodes !== 0
   // );
-  const filteredSignals = trafficSignals.filter(
-    (item) =>
-      item.userId === null ||
-      (userid !== null && item.userId == parseInt(userid))
-  );
+  // const filteredSignals = trafficSignals.filter(
+  //   (item) =>
+  //     item.userId === null ||
+  //     (userid !== null && item.userId == parseInt(userid))
+  // );
 
-  const fill = filteredSignals
+  const fill = trafficSignals
     .filter((item) =>
       item.signalNumber.toLowerCase().includes(searchText.toLowerCase())
     )
@@ -459,22 +461,25 @@ const trafficLightErrorList = () => {
                     >
                       <View>
                         {item.userId == null ? (
-                          <Text style={styles.statusText1}>維修紀錄: 無</Text>
+                          // <Text style={styles.statusText1}>維修紀錄: 無</Text>
+                          <Text style={styles.statusText1}>
+                            編輯工程師資訊: 無
+                          </Text>
                         ) : (
                           <>
                             <Text style={styles.statusText1}>
-                              維修紀錄: {item.userId}
+                              {/* 編輯工程師資訊: {item.userId} */}
+                              編輯工程師資訊
                             </Text>
-                            <Text style={styles.statusText1}>
+                            {/* <Text style={styles.statusText1}>
                               上次維修日期: {item.signalNumber}
-                            </Text>
+                            </Text> */}
                             <Text style={styles.statusText1}>
-                              上次故障原因:{" "}
+                              故障原因:{" "}
                               {getFaultCodeDescription2(item.faultCodes)}
                             </Text>
                             <Text style={styles.statusText1}>
-                              維修工程師:{" "}
-                              {item.userId == 1 ? "杜文長" : "黃文選"}
+                              維修工程師: {item.user_name}
                             </Text>
                           </>
                         )}
@@ -513,7 +518,6 @@ const trafficLightErrorList = () => {
               </View>
             </View>
           )}
-
           // renderItem={({ item }) => (
           //   <TouchableOpacity
           //     style={[
@@ -545,6 +549,7 @@ const trafficLightErrorList = () => {
           // ListEmptyComponent={
           //   <Text style={styles.emptyText}>No results found</Text>
           // }
+          ListEmptyComponent={<Text style={styles.emptyText}>沒有資料</Text>}
         />
       )}
     </View>

@@ -9,14 +9,10 @@ import {
   Image,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import apiClient from "./../api/apiClient";
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Picker } from "@react-native-picker/picker";
 import MapView, { Marker } from "react-native-maps";
-import { Colors } from "./../constants/Colors";
 import { useFocusEffect } from "@react-navigation/native";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 
 const getFaultCodeDescription = (code: number) => {
   switch (code) {

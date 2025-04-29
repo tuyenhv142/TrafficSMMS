@@ -99,14 +99,14 @@ const styles = StyleSheet.create({
   },
   border: {
     backgroundColor: Colors.primaryColor,
-    borderRadius: 99,
-    // width: "23%",
+    width: 80,
     height: 80,
+    borderRadius: 40, // 80 / 2
     justifyContent: "center",
     alignItems: "center",
     marginRight: 5,
-    // alignContent: "center",
   },
+
   content: {
     marginTop: 20,
     display: "flex",
@@ -118,8 +118,8 @@ const styles = StyleSheet.create({
   },
 
   img: {
-    height: 60,
-    width: 60,
+    height: 50,
+    width: 50,
     // marginBottom: 20,
   },
   textLayout: {

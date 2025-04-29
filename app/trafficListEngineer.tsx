@@ -125,10 +125,10 @@ const trafficListEngineer = () => {
   useFocusEffect(
     useCallback(() => {
       console.log("Current Role:", role);
-      if (role === 3) {
-        alert("您沒有權限訪問此頁面。");
-        // router.replace("/");
-      }
+      //   if (role !== 2) {
+      //     alert("您沒有權限訪問此頁面。");
+      //     // router.replace("/");
+      //   }
     }, [role])
   );
 
@@ -223,8 +223,8 @@ const trafficListEngineer = () => {
       const statusMap: Record<string, number> = {
         // 尚未確認: 0,
         // 故障通報: 0,
-        故障確認: 1,
-        // 維修中: 2,
+        // 故障確認: 1,
+        維修中: 2,
         維修完成: 3,
         // closed: 4,
       };
@@ -239,7 +239,7 @@ const trafficListEngineer = () => {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
 
-  const isAuthorized = role === "2" || role === "1";
+  const isAuthorized = role === "2";
 
   if (!isAuthorized) {
     return <Text style={styles.errorText}>您沒有權限訪問此頁面。</Text>;
@@ -278,8 +278,8 @@ const trafficListEngineer = () => {
         {[
           "全部",
           //   "故障通報",
-          "故障確認",
-          //   "維修中",
+          // "故障確認",
+          "維修中",
           "維修完成",
         ].map((status) => (
           <TouchableOpacity
@@ -593,9 +593,7 @@ const trafficListEngineer = () => {
           //     </View>
           //   </TouchableOpacity>
           // )}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>No results found</Text>
-          }
+          ListEmptyComponent={<Text style={styles.emptyText}>沒有資料</Text>}
         />
       )}
     </View>

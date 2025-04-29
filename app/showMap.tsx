@@ -24,7 +24,6 @@ import _, { isError } from "lodash";
 import { useRoute, RouteProp } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import mapStyle1 from "./../mapStyle.json"; // Import your custom map style if needed
-import Modal from "react-native-modal";
 
 interface TrafficSignal {
   identificationCode: number;

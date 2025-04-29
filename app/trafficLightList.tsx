@@ -13,7 +13,6 @@ import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { useAuth } from "../context/AuthProvider";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Colors } from "./../constants/Colors";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 
 const getFaultCodeDescription = (code: number) => {
@@ -75,7 +74,7 @@ const trafficLightList = () => {
         longitude: number;
         road1: string;
         road2: string;
-        district1: string;
+        districs: string;
         typesOfSignal: string;
         statusError: number;
         statusErrorUpdate: number;
@@ -94,7 +93,7 @@ const trafficLightList = () => {
     longitude: number;
     road1: string;
     road2: string;
-    district1: string;
+    districs: string;
     typesOfSignal: string;
     statusError: number;
     statusErrorUpdate: number;
@@ -357,7 +356,9 @@ const trafficLightList = () => {
                           color: item.isError ? "#fff" : "#000",
                         }}
                       >
-                        {item.isError ? "故障" : "正常"}
+                        {item.isError && item.statusError !== 0
+                          ? "故障"
+                          : "正常"}
                       </Text>
                     </View>
                   </View>
@@ -410,7 +411,7 @@ const trafficLightList = () => {
                       經度: {item.longitude}
                     </Text>
                     <Text style={styles.statusText1}>
-                      行政區: {item.district1}
+                      行政區: {item.districs}
                     </Text>
                     <Text style={styles.statusText1}>
                       道路: {item.road1} , {item.road2}

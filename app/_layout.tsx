@@ -36,6 +36,11 @@ export default function RootLayout() {
           options={{ headerTitle: "工程師清單" }}
           // options={{ headerTitle: "號誌清單" }}
         />
+        <Stack.Screen
+          name="trafficSignalEngineer"
+          options={{ headerTitle: "交通號誌詳情" }}
+          // options={{ headerTitle: "號誌清單" }}
+        />
         <Stack.Screen name="map" options={{ headerTitle: "地圖" }} />
         <Stack.Screen name="profile" options={{ headerTitle: "會員" }} />
         <Stack.Screen name="notification" options={{ headerTitle: "通知" }} />
