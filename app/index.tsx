@@ -54,18 +54,20 @@ const index = () => {
 
     const messagingInstance = getMessaging(app);
 
-    fetchToken(messagingInstance)
-      .then(async (token) => {
-        console.log("FCM Token:", token);
+    if (token) {
+      fetchToken(messagingInstance)
+        .then(async (token) => {
+          console.log("FCM Token:", token);
 
-        const response = await apiClient.post("/User/AddToken", null, {
-          params: { token: token },
+          const response = await apiClient.post("/User/AddToken", null, {
+            params: { token: token },
+          });
+          console.log("Token update response:", response.data);
+        })
+        .catch((error) => {
+          console.error("Error getting FCM token:", error);
         });
-        console.log("Token update response:", response.data);
-      })
-      .catch((error) => {
-        console.error("Error getting FCM token:", error);
-      });
+    }
 
     setBackgroundMessageHandler(messagingInstance, async (remoteMessage) => {
       console.log("Message handled in the background!", remoteMessage);
