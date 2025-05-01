@@ -1,5 +1,13 @@
-import { Alert, PermissionsAndroid, ScrollView } from "react-native";
-import React, { useEffect } from "react";
+import {
+  Alert,
+  PermissionsAndroid,
+  ScrollView,
+  View,
+  Text,
+  Modal,
+  Button,
+} from "react-native";
+import React, { useEffect, useState } from "react";
 import Header from "../components/Home/Header";
 import Map from "../components/Home/Map";
 import Content from "../components/Home/Content";
@@ -8,7 +16,6 @@ import Content1 from "../components/Home/Content1";
 import { useAuth } from "../context/AuthProvider";
 import { Redirect } from "expo-router";
 import "react-native-get-random-values";
-
 import { getApp } from "@react-native-firebase/app";
 import {
   getMessaging,
@@ -17,7 +24,11 @@ import {
   setBackgroundMessageHandler,
 } from "@react-native-firebase/messaging";
 import apiClient from "./../api/apiClient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// import { useNetInfo } from "@react-native-community/netinfo";
+
+// const { type, isConnected } = useNetInfo();
 const app = getApp();
 
 const requestUserPermission = async () => {
@@ -45,8 +56,64 @@ const getToken = async () => {
   }
 };
 
+interface Response {
+  success: boolean;
+  content: {
+    token: string;
+  };
+}
+
+const checkTokenValidity = async (): Promise<boolean> => {
+  try {
+    const token = await AsyncStorage.getItem("token");
+    if (!token) return false;
+
+    const response = await apiClient.post("/User/CheckToken", null, {
+      params: { token },
+    });
+
+    const data = response.data as Response;
+
+    if (response.status === 200 && data.success) {
+      // Nếu token mới được cấp → lưu lại
+      if (data.content.token && data.content.token !== token) {
+        await AsyncStorage.setItem("token", data.content.token);
+        console.log("🔄 Token refreshed and saved");
+      }
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    console.error("Token validation error:", error);
+    return false;
+  }
+};
+
 const index = () => {
-  const { token, role } = useAuth();
+  const { token, role, logout } = useAuth();
+  const [showTokenExpiredModal, setShowTokenExpiredModal] = useState(false);
+
+  useEffect(() => {
+    const verifyToken = async () => {
+      const isValid = await checkTokenValidity();
+      if (!isValid) {
+        setShowTokenExpiredModal(true); // hiển thị modal thông báo
+      }
+    };
+    verifyToken();
+  }, []);
+
+  // const netInfo = useNetInfo();
+  // const [showNoInternet, setShowNoInternet] = useState(false);
+
+  // useEffect(() => {
+  //   if (!netInfo.isConnected) {
+  //     setShowNoInternet(true);
+  //   } else {
+  //     setShowNoInternet(false);
+  //   }
+  // }, [netInfo.isConnected]);
 
   useEffect(() => {
     requestUserPermission();
@@ -114,8 +181,44 @@ const index = () => {
     return <Redirect href="/login" />;
   }
 
+  // if (showNoInternet) {
+  //   return (
+  //     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  //       <Text style={{ fontSize: 18, color: "red" }}>
+  //         沒有網路連結，請檢查您的網路設定
+  //       </Text>
+  //     </View>
+  //   );
+  // }
+
   return (
     <ScrollView>
+      <Modal visible={showTokenExpiredModal} transparent animationType="fade">
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "white",
+              padding: 20,
+              borderRadius: 10,
+              width: "80%",
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ fontSize: 16, marginBottom: 15, color: "red" }}>
+              Token 已過期，請重新登入。
+            </Text>
+            <Button title="前往登入頁面" onPress={() => logout()} />
+          </View>
+        </View>
+      </Modal>
+
       <Header />
       <Map />
       <Content />

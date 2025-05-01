@@ -9,6 +9,11 @@ import {
   TouchableOpacity,
   PixelRatio,
   Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 // import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 import { Redirect, useRouter } from "expo-router"; // Import useRouter từ expo-router
@@ -40,62 +45,75 @@ const Login = () => {
 
   if (token) return <Redirect href="/" />;
   return (
-    <View style={styles.container}>
-      <View style={styles.container2}>
-        <Image
-          style={styles.iconLogin}
-          source={require("./../assets/images/iconTrafficLogin.png")}
-        ></Image>
-        <Text style={styles.text}>您好，歡迎使用</Text>
-        <Text style={styles.text}>交通號誌維修管理系統</Text>
-        <Text style={styles.text1}>即時管理，迅速維修</Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: "#5958b2" }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, backgroundColor: "#5958b2" }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.container}>
+            <View style={styles.container2}>
+              <Image
+                style={styles.iconLogin}
+                source={require("./../assets/images/iconTrafficLogin.png")}
+              ></Image>
+              <Text style={styles.text}>您好，歡迎使用</Text>
+              <Text style={styles.text}>交通號誌維修管理系統</Text>
+              <Text style={styles.text1}>即時管理，迅速維修</Text>
 
-        <Image
-          style={styles.imgLogin}
-          source={require("./../assets/images/TSMMS_logo.png")}
-        ></Image>
-      </View>
-      <View style={styles.bottom}>
-        <TextInput
-          value={name}
-          onChangeText={setName}
-          style={styles.input}
-          placeholder="電子郵件/E-mail"
-        />
-        <TextInput
-          value={password}
-          onChangeText={setPassword}
-          style={styles.input1}
-          placeholder="密碼/Password"
-          secureTextEntry
-        />
+              <Image
+                style={styles.imgLogin}
+                source={require("./../assets/images/TSMMS_logo.png")}
+              ></Image>
+            </View>
+            <View style={styles.bottom}>
+              <TextInput
+                value={name}
+                onChangeText={setName}
+                style={styles.input}
+                placeholder="電子郵件/E-mail"
+              />
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                style={styles.input1}
+                placeholder="密碼/Password"
+                secureTextEntry
+              />
 
-        <CheckBox
-          checked={check1}
-          checkedColor="#ccc"
-          checkedTitle="儲存我的帳號/Remember me"
-          containerStyle={{
-            width: "100%",
-            backgroundColor: "#5958b2",
-            height: 35,
-          }}
-          onIconPress={() => setCheck1(!check1)}
-          onPress={() => setCheck1(!check1)}
-          size={18}
-          textStyle={{ color: "#fff", fontSize: 11, fontWeight: "100" }}
-          title="儲存我的帳號/Remember me"
-          titleProps={{}}
-          uncheckedColor="#fff"
-        />
+              <CheckBox
+                checked={check1}
+                checkedColor="#ccc"
+                checkedTitle="儲存我的帳號/Remember me"
+                containerStyle={{
+                  width: "100%",
+                  backgroundColor: "#5958b2",
+                  height: 35,
+                }}
+                onIconPress={() => setCheck1(!check1)}
+                onPress={() => setCheck1(!check1)}
+                size={18}
+                textStyle={{ color: "#fff", fontSize: 11, fontWeight: "100" }}
+                title="儲存我的帳號/Remember me"
+                titleProps={{}}
+                uncheckedColor="#fff"
+              />
 
-        <TouchableOpacity onPress={handleLogin} style={styles.btn}>
-          <Text style={styles.btnText}>登入</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.btn2}>
-          <Text style={styles.btnText2}>註冊新使用者</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+              <TouchableOpacity onPress={handleLogin} style={styles.btn}>
+                <Text style={styles.btnText}>登入</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.btn2}>
+                <Text style={styles.btnText2}>註冊新使用者</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -131,7 +149,7 @@ const styles = StyleSheet.create({
   },
   imgLogin: {
     width: width * 1.0,
-    height: height * 0.44,
+    height: height * 0.41,
     resizeMode: "contain",
     alignSelf: "center",
   },
