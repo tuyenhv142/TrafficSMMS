@@ -289,12 +289,12 @@ const trafficLightErrorList = () => {
             // <FontAwesome5 name="compress" size={24} color="black" />
             <Image
               style={{ height: 35, width: 35 }}
-              source={require("./../assets/images/9329163_0.png")}
+              source={require("./../assets/images/9329176_0.png")}
             ></Image>
           ) : (
             <Image
               style={{ height: 35, width: 35 }}
-              source={require("./../assets/images/9329176_0.png")}
+              source={require("./../assets/images/9329163_0.png")}
             ></Image>
             // <FontAwesome5 name="expand" size={24} color="black" />
           )}

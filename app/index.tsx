@@ -47,7 +47,7 @@ const getToken = async () => {
   try {
     const messagingInstance = getMessaging(app);
     const token = await fetchToken(messagingInstance);
-    console.log("FCM Token:", token);
+    // console.log("FCM Token:", token);
     return token;
   } catch (error) {
     console.error("Error fetching token:", error);

@@ -6,6 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import apiClient from "../api/apiClient";
@@ -249,14 +250,27 @@ const trafficListEngineer = () => {
     <View style={styles.container}>
       <View
         style={{
-          display: "flex",
+          // display: "flex",
           flexDirection: "row",
-          justifyContent: "space-between",
+          // justifyContent: "center",
           alignItems: "center",
+          // alignContent: "center",
+          // paddingHorizontal: 10,
+          height: 40,
+          marginBottom: 10,
         }}
       >
         <TextInput
-          style={styles.searchBar}
+          style={{
+            flex: 1,
+            borderRadius: 8,
+            borderColor: "#ccc",
+            borderWidth: 1,
+            paddingHorizontal: 10,
+            paddingVertical: 0, // tránh padding dọc đẩy text lên xuống
+            height: 40,
+            marginRight: 10,
+          }}
           placeholder="依訊號編號搜尋..."
           value={searchText}
           onChangeText={setSearchText}
@@ -269,7 +283,20 @@ const trafficListEngineer = () => {
             );
           }}
         >
-          <FontAwesome5 name="external-link-alt" size={24} color="black" />
+          {trafficSignals.every((s) => s.expanded) ? (
+            // <FontAwesome5 name="compress" size={24} color="black" />
+            <Image
+              style={{ height: 35, width: 35 }}
+              source={require("./../assets/images/9329176_0.png")}
+            ></Image>
+          ) : (
+            <Image
+              style={{ height: 35, width: 35 }}
+              source={require("./../assets/images/9329163_0.png")}
+            ></Image>
+            // <FontAwesome5 name="expand" size={24} color="black" />
+          )}
+          {/* <Image></Image> */}
         </TouchableOpacity>
       </View>
       <View

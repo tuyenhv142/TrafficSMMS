@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   ScrollView,
   TouchableOpacity,
+  Modal,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { useRoute, RouteProp } from "@react-navigation/native";
@@ -232,138 +233,152 @@ const add = () => {
     <View style={{ flex: 1 }}>
       {/* Overlay loading toàn màn hình */}
       {isLoading && (
-        <View
-          style={[
-            StyleSheet.absoluteFillObject,
-            {
-              backgroundColor: "rgba(0, 0, 0, 0.3)",
+        <Modal visible={isLoading} transparent animationType="none">
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.3)",
               justifyContent: "center",
               alignItems: "center",
-              zIndex: 9999,
-              elevation: 9999,
-            },
-          ]}
-        >
-          <ActivityIndicator size="large" color="#fff" />
-          <Text style={{ color: "#fff", marginTop: 10 }}>
-            上傳中，請稍後...
-          </Text>
-        </View>
+            }}
+          >
+            <ActivityIndicator size="large" color="#fff" />
+            <Text style={{ color: "#fff", marginTop: 10 }}>
+              上傳中，請稍後...
+            </Text>
+          </View>
+        </Modal>
+        // <View
+        //   style={[
+        //     StyleSheet.absoluteFillObject,
+        //     {
+        //       backgroundColor: "rgba(0, 0, 0, 0.3)",
+        //       justifyContent: "center",
+        //       alignItems: "center",
+        //       zIndex: 9999,
+        //       elevation: 9999,
+        //     },
+        //   ]}
+        //   pointerEvents="auto"
+        // >
+        //   <ActivityIndicator size="large" color="#fff" />
+        //   <Text style={{ color: "#fff", marginTop: 10 }}>
+        //     上傳中，請稍後...
+        //   </Text>
+        // </View>
       )}
 
       <ScrollView style={styles.container}>
-        {isLoading ? (
+        {/* {isLoading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : (
-          <>
-            <MapView
-              style={styles.map}
-              mapType="satellite"
-              region={{
-                latitude: signal.latitude,
-                longitude: signal.longitude,
-                latitudeDelta: 0.0005,
-                longitudeDelta: 0.0005,
-              }}
-              zoomEnabled={false}
-              scrollEnabled={false}
-              pitchEnabled={false}
-              rotateEnabled={false}
-            >
-              <Marker
-                coordinate={{
-                  latitude: signal.latitude,
-                  longitude: signal.longitude,
+          <> */}
+        <MapView
+          style={styles.map}
+          mapType="satellite"
+          region={{
+            latitude: signal.latitude,
+            longitude: signal.longitude,
+            latitudeDelta: 0.0005,
+            longitudeDelta: 0.0005,
+          }}
+          zoomEnabled={false}
+          scrollEnabled={false}
+          pitchEnabled={false}
+          rotateEnabled={false}
+        >
+          <Marker
+            coordinate={{
+              latitude: signal.latitude,
+              longitude: signal.longitude,
+            }}
+            title={`號誌編號: ${signal.signalNumber}`}
+            description={`識別碼: ${signal.identificationCode}`}
+          />
+        </MapView>
+        <Text style={styles.title}>號誌編號: {signal.signalNumber}</Text>
+        <Text>識別碼: {signal.identificationCode}</Text>
+        <Text>
+          座標: {signal.latitude}, {signal.longitude}
+        </Text>
+        <Text>號誌種類: {signal.typesOfSignal}</Text>
+        <Text style={styles.label}>故障代碼:</Text>
+        <Picker
+          selectedValue={faultCode}
+          style={styles.picker}
+          onValueChange={(itemValue) => setFaultCode(itemValue)}
+        >
+          <Picker.Item label="請選擇交通號誌錯誤" value={0} />
+          <Picker.Item label="號誌設備故障" value={1} />
+          <Picker.Item label="號誌停電" value={2} />
+        </Picker>
+        <Button
+          color={Colors.primaryColor}
+          title="選擇圖片或影片"
+          onPress={pickMedia}
+        />
+        <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 10 }}>
+          {selectedImages.map((img, index) => (
+            <View key={index} style={{ position: "relative", margin: 4 }}>
+              <Image
+                source={{ uri: img.uri }}
+                style={{ width: 80, height: 80, borderRadius: 8 }}
+              />
+              <TouchableOpacity
+                onPress={() => {
+                  const newImages = [...selectedImages];
+                  newImages.splice(index, 1);
+                  setSelectedImages(newImages);
                 }}
-                title={`號誌編號: ${signal.signalNumber}`}
-                description={`識別碼: ${signal.identificationCode}`}
-              />
-            </MapView>
-            <Text style={styles.title}>號誌編號: {signal.signalNumber}</Text>
-            <Text>識別碼: {signal.identificationCode}</Text>
-            <Text>
-              座標: {signal.latitude}, {signal.longitude}
-            </Text>
-            <Text>號誌種類: {signal.typesOfSignal}</Text>
-            <Text style={styles.label}>故障代碼:</Text>
-            <Picker
-              selectedValue={faultCode}
-              style={styles.picker}
-              onValueChange={(itemValue) => setFaultCode(itemValue)}
-            >
-              <Picker.Item label="請選擇交通號誌錯誤" value={0} />
-              <Picker.Item label="號誌設備故障" value={1} />
-              <Picker.Item label="號誌停電" value={2} />
-            </Picker>
-            <Button
-              color={Colors.primaryColor}
-              title="選擇圖片或影片"
-              onPress={pickMedia}
-            />
-            <View
-              style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 10 }}
-            >
-              {selectedImages.map((img, index) => (
-                <View key={index} style={{ position: "relative", margin: 4 }}>
-                  <Image
-                    source={{ uri: img.uri }}
-                    style={{ width: 80, height: 80, borderRadius: 8 }}
-                  />
-                  <TouchableOpacity
-                    onPress={() => {
-                      const newImages = [...selectedImages];
-                      newImages.splice(index, 1);
-                      setSelectedImages(newImages);
-                    }}
-                    style={{
-                      position: "absolute",
-                      top: -6,
-                      right: -6,
-                      backgroundColor: "rgba(0,0,0,0.7)",
-                      borderRadius: 12,
-                      width: 24,
-                      height: 24,
-                      justifyContent: "center",
-                      alignItems: "center",
-                      zIndex: 1,
-                    }}
-                  >
-                    <Text style={{ color: "white", fontSize: 16 }}>×</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-            <View style={styles.form}>
-              <Text style={styles.label}>備註:</Text>
-              <TextInput
-                style={styles.textArea}
-                value={remark}
-                onChangeText={setRemark}
-                multiline
-                numberOfLines={4}
-              />
-
-              <View
                 style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  gap: 10,
+                  position: "absolute",
+                  top: -6,
+                  right: -6,
+                  backgroundColor: "rgba(0,0,0,0.7)",
+                  borderRadius: 12,
+                  width: 24,
+                  height: 24,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  zIndex: 1,
                 }}
               >
-                <View style={{ flex: 1 }}>
-                  <Button
-                    color={Colors.primaryColor}
-                    title="通報"
-                    onPress={handleSubmit}
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Button color="red" title="取消" onPress={handleCancel} />
-                </View>
-              </View>
+                <Text style={{ color: "white", fontSize: 16 }}>×</Text>
+              </TouchableOpacity>
             </View>
-          </>
-        )}
+          ))}
+        </View>
+        <View style={styles.form}>
+          <Text style={styles.label}>備註:</Text>
+          <TextInput
+            style={styles.textArea}
+            value={remark}
+            onChangeText={setRemark}
+            multiline
+            numberOfLines={4}
+          />
+
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              gap: 10,
+            }}
+          >
+            <View style={{ flex: 1 }}>
+              <Button
+                color={Colors.primaryColor}
+                title="通報"
+                onPress={handleSubmit}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button color="red" title="取消" onPress={handleCancel} />
+            </View>
+          </View>
+        </View>
+        {/* </>
+        )} */}
       </ScrollView>
     </View>
   );
