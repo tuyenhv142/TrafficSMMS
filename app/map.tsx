@@ -1,9 +1,11 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import React, { useState, useEffect } from "react";
 import MapViewComponent from "../components/MapViewComponent";
 import apiClient from "../api/apiClient";
 import { getDistance } from "geolib";
 import Test from "../components/Test";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import { router } from "expo-router";
 
 interface TrafficSignal {
   identificationCode: number;
@@ -73,8 +75,19 @@ const map = () => {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        {/* <LogoComponent /> */}
-        <Test onLocationSelected={setSelectedLocation} />
+        <View>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => {
+              router.back();
+            }}
+          >
+            <FontAwesome5 name="arrow-left" size={25} color="#333" />
+          </TouchableOpacity>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Test onLocationSelected={setSelectedLocation} />
+        </View>
       </View>
       <MapViewComponent
         selectedLocation={selectedLocation || mapCenterLocation}
@@ -92,10 +105,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    alignContent: "center",
     position: "absolute",
     zIndex: 10,
     padding: 10,
     width: "100%",
     paddingHorizontal: 20,
+  },
+  backButton: {
+    marginTop: 10,
+    marginRight: 3,
+    backgroundColor: "#fff",
+    padding: 10,
+    borderRadius: 10,
   },
 });

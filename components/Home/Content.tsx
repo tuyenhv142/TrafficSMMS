@@ -66,7 +66,13 @@ const Content = () => {
         </View>
 
         <View style={styles.layout}>
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              router.push({
+                pathname: "/statistic",
+              });
+            }}
+          >
             <View style={styles.border}>
               <Image
                 style={styles.img}

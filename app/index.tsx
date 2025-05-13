@@ -25,6 +25,7 @@ import {
 } from "@react-native-firebase/messaging";
 import apiClient from "./../api/apiClient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import StatisticsScreen from "./statistinal";
 
 // import { useNetInfo } from "@react-native-community/netinfo";
 
@@ -102,6 +103,7 @@ const index = () => {
       }
     };
     verifyToken();
+    // console.log(role);
   }, []);
 
   // const netInfo = useNetInfo();
@@ -220,10 +222,23 @@ const index = () => {
       </Modal>
 
       <Header />
-      <Map />
-      <Content />
-      <Content1 />
-      <Content2 />
+
+      {Number(role) === 1 ? (
+        <>
+          <StatisticsScreen />
+          <Map />
+          <Content />
+          <Content1 />
+          <Content2 />
+        </>
+      ) : (
+        <>
+          <Map />
+          <Content />
+          <Content1 />
+          <Content2 />
+        </>
+      )}
     </ScrollView>
   );
 };

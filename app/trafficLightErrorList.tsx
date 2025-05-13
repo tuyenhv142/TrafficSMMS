@@ -126,7 +126,7 @@ const trafficLightErrorList = () => {
   );
   useFocusEffect(
     useCallback(() => {
-      console.log("Current Role:", role);
+      // console.log("Current Role:", role);
       if (role !== "1") {
         alert("您沒有權限訪問此頁面。");
         // router.replace("/");
@@ -146,7 +146,7 @@ const trafficLightErrorList = () => {
       // if (response.data.success === false) {
       //   throw new Error("Failed to update signal");
       // }
-      console.log("Response:", response.data);
+      // console.log("Response:", response.data);
     } catch (error) {
       console.error("Error updating repair status:", error);
     }
