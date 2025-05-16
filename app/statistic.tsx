@@ -9,7 +9,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
-import { BarChart, ProgressChart } from "react-native-chart-kit";
+import { BarChart, PieChart, ProgressChart } from "react-native-chart-kit";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -63,9 +63,9 @@ interface TrafficSignal {
 const StatisticsPage = () => {
   const [labels, setLabels] = useState<string[]>([]);
   const [values, setValues] = useState<number[]>([]);
-  // const [lightError, setLightError] = useState<number[]>([]);
+  const [lightError, setLightError] = useState<number>(0);
   const [lightError2, setLightError2] = useState<number>(0);
-  // const [lightError3, setLightError3] = useState<number[]>([]);
+  const [lightError3, setLightError3] = useState<number>(0);
   const [trafficSignals, setTrafficSignals] = useState<TrafficSignal[]>([]);
   // console.log("Traffic Signals:", trafficSignals);
 
@@ -92,11 +92,11 @@ const StatisticsPage = () => {
   const fetchData2 = async () => {
     try {
       const response = await apiClient.get<ApiResponse2>(
-        "/TrafficEquipment/GetNormal"
+        "/TrafficEquipment/TotalErrorNoUpdate"
       );
       // console.log("Response:", response.data);
       if (response.data.content) {
-        // setLightError([response.data.content]);
+        setLightError(response.data.content);
         // console.log("Light Error:", response.data.content);
       }
     } catch (error: any) {
@@ -104,6 +104,20 @@ const StatisticsPage = () => {
     }
   };
   const fetchData3 = async () => {
+    try {
+      const response = await apiClient.get<ApiResponse2>(
+        "/TrafficEquipment/TotalErrorNoUpdate2"
+      );
+      // console.log("Response:", response.data);
+      if (response.data.content) {
+        setLightError3(response.data.content);
+        // console.log("Light Error:", response.data.content);
+      }
+    } catch (error: any) {
+      console.error("Fetch error:", error);
+    }
+  };
+  const fetchData5 = async () => {
     try {
       const response = await apiClient.get<ApiResponse2>(
         "/TrafficEquipment/GetNormalError"
@@ -155,8 +169,9 @@ const StatisticsPage = () => {
   useEffect(() => {
     fetchData();
     // fetchData2();
-    fetchData3();
+    // fetchData3();
     fetchData4();
+    fetchData5();
     // console.log(labels, values);
   }, []);
 
@@ -178,6 +193,43 @@ const StatisticsPage = () => {
       },
     ],
   };
+  const data1 = [
+    {
+      name: "Seoul",
+      population: 21500000,
+      color: "rgba(131, 167, 234, 1)",
+      legendFontColor: "#7F7F7F",
+      legendFontSize: 15,
+    },
+    {
+      name: "Toronto",
+      population: 2800000,
+      color: "#F00",
+      legendFontColor: "#7F7F7F",
+      legendFontSize: 15,
+    },
+    {
+      name: "Beijing",
+      population: 527612,
+      color: "red",
+      legendFontColor: "#7F7F7F",
+      legendFontSize: 15,
+    },
+    {
+      name: "New York",
+      population: 8538000,
+      color: "#ffffff",
+      legendFontColor: "#7F7F7F",
+      legendFontSize: 15,
+    },
+    {
+      name: "Moscow",
+      population: 11920000,
+      color: "rgb(0, 0, 255)",
+      legendFontColor: "#7F7F7F",
+      legendFontSize: 15,
+    },
+  ];
 
   const chartConfig = {
     backgroundGradientFrom: "#f0f0f0",
@@ -225,7 +277,7 @@ const StatisticsPage = () => {
         <View style={styles.flexRow}>
           <View style={styles.card1}>
             <View style={styles.percentRow}>
-              <Text style={styles.label1}>燈壞掉 : </Text>
+              <Text style={styles.label1}>故障率 : </Text>
               <Text style={styles.percentNumber}>{lightError2}</Text>
               <Text style={styles.percentSymbol}>% </Text>
             </View>
@@ -264,7 +316,7 @@ const StatisticsPage = () => {
             showValuesOnTopOfBars={true}
           />
 
-          <ProgressChart
+          {/* <ProgressChart
             data={{
               labels: ["Swim", "Bike", "Run"], // optional
               data: [0.4, 0.6, 0.8],
@@ -275,6 +327,24 @@ const StatisticsPage = () => {
             radius={32}
             chartConfig={chartConfig}
             hideLegend={false}
+          /> */}
+          {/* <PieChart
+            data={data1}
+            width={screenWidth}
+            height={220}
+            chartConfig={chartConfig}
+            accessor={"population"}
+            backgroundColor={"transparent"}
+            paddingLeft={"15"}
+            center={[10, 50]}
+          /> */}
+          <Text
+            style={{
+              textAlign: "center",
+              fontSize: 20,
+              fontWeight: "bold",
+              marginTop: 16,
+            }}
           />
         </>
       ) : (

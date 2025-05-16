@@ -16,7 +16,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import apiClient from "./../api/apiClient";
 import * as ImagePicker from "expo-image-picker";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 // import { Picker } from "@react-native-picker/picker";
 import MapView, { Marker } from "react-native-maps";
 import { Colors } from "./../constants/Colors";
@@ -85,9 +85,9 @@ const TrafficSignalDetail = () => {
   >([]);
   const router = useRouter();
   const { index, signals } = useLocalSearchParams();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [engineer, setEngineer] = useState<Engineer[]>([]);
-  console.log("Engineer:", engineer);
+  // console.log("Engineer:", engineer);
   // console.log("Params:", signals);
   // console.log("Index:", index);
 
@@ -102,8 +102,8 @@ const TrafficSignalDetail = () => {
 
   const [query, setQuery] = useState("");
   const [idEngineer, setIdEngineer] = useState<number>(0);
-  const [filteredData, setFilteredData] = useState<Engineer[]>([]);
-  console.log("Filtered Data:", filteredData);
+  // const [filteredData, setFilteredData] = useState<Engineer[]>([]);
+  // console.log("Filtered Data:", filteredData);
 
   // const handleSearch = (text: string) => {
   //   setQuery(text);
@@ -115,10 +115,15 @@ const TrafficSignalDetail = () => {
   //   setFilteredData(results);
   // };
 
-  const results = engineer.filter(
-    (item) =>
-      item.identity == 2 &&
-      item.name.toLowerCase().includes(query.toLowerCase())
+  // Sử dụng memoization cho danh sách đã lọc
+  const results = useMemo(
+    () =>
+      engineer.filter(
+        (item) =>
+          item.identity === 2 &&
+          item.name.toLowerCase().includes(query.toLowerCase())
+      ),
+    [engineer, query]
   );
 
   useFocusEffect(
@@ -126,6 +131,7 @@ const TrafficSignalDetail = () => {
       if (signals && index) {
         try {
           setIsLoading(true);
+          // searchEngineer();
           const parsed = JSON.parse(signals as string);
           const currentIndex = parseInt(index as string);
           const currentSignal = parsed[currentIndex];
@@ -139,7 +145,6 @@ const TrafficSignalDetail = () => {
           setCurrentIndex(currentIndex);
           setSignal(currentSignal);
           setRepairStatus(currentSignal?.repairStatus ?? 2);
-          searchEngineer();
         } catch (error) {
           console.error("Error parsing signals or index:", error);
         } finally {
@@ -148,6 +153,23 @@ const TrafficSignalDetail = () => {
       }
     }, [signals, index])
   );
+
+  // Thêm useEffect để load engineer khi component mount
+  useEffect(() => {
+    // const loadEngineers = async () => {
+    //   try {
+    //     setIsLoading(true);
+    //     await searchEngineer();
+    //   } catch (error) {
+    //     console.log("Error loading engineers:", error);
+    //   } finally {
+    //     setIsLoading(false);
+    //   }
+    // };
+
+    // loadEngineers();
+    searchEngineer();
+  }, []); // Empty dependency array để chỉ chạy 1 lần khi mount
   const [previewVisible, setPreviewVisible] = useState(false);
   // const [previewMedia, setPreviewMedia] = useState<string | null>(null);
   const [currentIndex1, setCurrentIndex1] = useState<number>(0);
@@ -220,7 +242,7 @@ const TrafficSignalDetail = () => {
             identity: item.identity,
           }))
         );
-        // console.log("response", response);
+        console.log("response", response);
       } else {
         console.log("No traffic signal data available.");
       }
@@ -232,6 +254,20 @@ const TrafficSignalDetail = () => {
       throw new Error("Failed to fetch search results");
     }
   };
+  // useEffect(() => {
+  //   const init = async () => {
+  //     try {
+  //       setIsLoading(true);
+  //       await searchEngineer(); // Nếu là async thì cần `await`
+  //     } catch (error) {
+  //       console.log("Error parsing signals or index:", error);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+
+  //   init();
+  // }, []);
 
   const handleChooseEngineer = async () => {
     try {
@@ -289,332 +325,371 @@ const TrafficSignalDetail = () => {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={{ marginTop: 10 }}>Loading...</Text>
+        <Text style={{ marginTop: 10 }}>載入中...</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {/* <Text style={styles.title}>交通號誌詳情</Text> */}
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          marginTop: 5,
-          marginBottom: 10,
-        }}
-      >
-        <TouchableOpacity
-          disabled={currentIndex === 0}
-          onPress={() =>
-            router.push({
-              pathname: "/trafficSignalDetail",
-              params: {
-                index: (currentIndex - 1).toString(),
-                signals: JSON.stringify(parsedSignals),
-              },
-            })
-          }
-        >
-          <Text
+    <View style={{ flex: 1 }}>
+      {isLoading && (
+        <Modal visible={isLoading} transparent animationType="none">
+          <View
             style={{
-              color: currentIndex === 0 ? "gray" : "#000",
-              borderBottomColor: "#000",
-              borderBottomWidth: 1,
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.3)",
+              justifyContent: "center",
+              alignItems: "center",
             }}
           >
-            上一筆
-          </Text>
-          {/* <FontAwesome5
+            <ActivityIndicator size="large" color="#fff" />
+            <Text style={{ color: "#fff", marginTop: 10 }}>
+              上傳中，請稍後...
+            </Text>
+          </View>
+        </Modal>
+      )}
+      <ScrollView style={styles.container}>
+        {/* <Text style={styles.title}>交通號誌詳情</Text> */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginTop: 5,
+            marginBottom: 10,
+          }}
+        >
+          <TouchableOpacity
+            disabled={currentIndex === 0}
+            onPress={() =>
+              router.push({
+                pathname: "/trafficSignalDetail",
+                params: {
+                  index: (currentIndex - 1).toString(),
+                  signals: JSON.stringify(parsedSignals),
+                },
+              })
+            }
+          >
+            <Text
+              style={{
+                color: currentIndex === 0 ? "gray" : "#000",
+                borderBottomColor: "#000",
+                borderBottomWidth: 1,
+              }}
+            >
+              上一筆
+            </Text>
+            {/* <FontAwesome5
             name="arrow-left"
             size={20}
             color={Colors.primaryColor}
             style={{ alignSelf: "center" }}
           /> */}
-        </TouchableOpacity>
-        <Text style={styles.text}>識別碼: {signal.identificationCode}</Text>
-        <TouchableOpacity
-          disabled={currentIndex === parsedSignals.length - 1}
-          onPress={
-            () =>
-              // setQuery(""),
-              router.push({
-                pathname: "/trafficSignalDetail",
-                params: {
-                  index: (currentIndex + 1).toString(),
-                  signals: JSON.stringify(parsedSignals),
-                },
-              })
-            // setQuery(null)
-          }
-        >
-          <Text
-            style={{
-              color:
-                currentIndex === parsedSignals.length - 1 ? "gray" : "#000",
-              borderBottomColor: "#000",
-              borderBottomWidth: 1,
-            }}
+          </TouchableOpacity>
+          <Text style={styles.text}>識別碼: {signal.identificationCode}</Text>
+          <TouchableOpacity
+            disabled={currentIndex === parsedSignals.length - 1}
+            onPress={
+              () =>
+                // setQuery(""),
+                router.push({
+                  pathname: "/trafficSignalDetail",
+                  params: {
+                    index: (currentIndex + 1).toString(),
+                    signals: JSON.stringify(parsedSignals),
+                  },
+                })
+              // setQuery(null)
+            }
           >
-            下一筆
-          </Text>
-          {/* <FontAwesome5
+            <Text
+              style={{
+                color:
+                  currentIndex === parsedSignals.length - 1 ? "gray" : "#000",
+                borderBottomColor: "#000",
+                borderBottomWidth: 1,
+              }}
+            >
+              下一筆
+            </Text>
+            {/* <FontAwesome5
             name="arrow-right"
             size={20}
             color={Colors.primaryColor}
             style={{ alignSelf: "center" }}
           /> */}
-        </TouchableOpacity>
-      </View>
+          </TouchableOpacity>
+        </View>
 
-      <Text style={styles.text}>號誌編號: {signal.signalNumber}</Text>
-      <Text style={styles.text}>號誌種類: {signal.typesOfSignal}</Text>
-      {signal?.faultCodes !== undefined && (
-        <Text style={styles.text}>
-          故障: {getFaultCodeDescription(signal.faultCodes)}
-        </Text>
-      )}
-      {signal.remark ? (
-        <Text style={styles.text}>Note: {signal.remark}</Text>
-      ) : null}
-      {/* <Text style={styles.text}>
+        <Text style={styles.text}>號誌編號: {signal.signalNumber}</Text>
+        <Text style={styles.text}>號誌種類: {signal.typesOfSignal}</Text>
+        {signal?.faultCodes !== undefined && (
+          <Text style={styles.text}>
+            故障: {getFaultCodeDescription(signal.faultCodes)}
+          </Text>
+        )}
+        {signal.remark ? (
+          <Text style={styles.text}>Note: {signal.remark}</Text>
+        ) : null}
+        {/* <Text style={styles.text}>
         更新狀態: {getRepairStatusDescription(signal.repairStatus)}
       </Text> */}
 
-      {signal.repairStatus === 1 && (
-        <>
-          <TouchableOpacity
-            style={{
-              backgroundColor: "#ccc",
-              padding: 10,
-              borderRadius: 8,
-              alignItems: "center",
-              marginBottom: 10,
+        {signal.repairStatus === 1 && (
+          <>
+            <TouchableOpacity
+              style={{
+                backgroundColor: "#ccc",
+                padding: 10,
+                borderRadius: 8,
+                alignItems: "center",
+                marginBottom: 10,
+              }}
+              onPress={() => setModalVisible(true)}
+            >
+              <Text>選擇工程師</Text>
+            </TouchableOpacity>
+
+            <TextInput
+              placeholder="工程師已選擇"
+              // focusable={false}
+              value={query}
+              // onChangeText={handleSearch}
+              style={styles.searchBar}
+              editable={false}
+            />
+
+            <Modal visible={modalVisible} animationType="slide">
+              <View style={{ flex: 1, padding: 20, backgroundColor: "white" }}>
+                <Text
+                  style={{
+                    marginBottom: 15,
+                    textAlign: "center",
+                    fontWeight: "bold",
+                    fontSize: 18,
+                  }}
+                >
+                  請選擇工程師
+                </Text>
+
+                <TextInput
+                  placeholder="搜尋工程師"
+                  value={query}
+                  onChangeText={setQuery}
+                  style={styles.searchBar}
+                />
+                {engineer.length === 0 ? (
+                  <>
+                    <View
+                      style={{
+                        flex: 1,
+                        backgroundColor: "rgba(0,0,0,0)",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <ActivityIndicator size="large" color="#000" />
+                      <Text style={{ color: "black", marginTop: 10 }}>
+                        載入中...
+                      </Text>
+                    </View>
+                  </>
+                ) : (
+                  <FlatList
+                    data={results}
+                    keyExtractor={(item) => item.name.toString()}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={{
+                          paddingVertical: 12,
+                          borderBottomWidth: 1,
+                          borderColor: "#eee",
+                        }}
+                        onPress={() => {
+                          setQuery(item.name.toString());
+                          setIdEngineer(item.id);
+                          // setFilteredData([]);
+                          setModalVisible(false); // Đóng modal sau khi chọn
+                        }}
+                      >
+                        <Text>{item.name}</Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                )}
+
+                <Button title="關閉" onPress={() => setModalVisible(false)} />
+              </View>
+            </Modal>
+          </>
+        )}
+
+        {signal.latitude && signal.longitude ? (
+          <MapView
+            style={styles.map}
+            mapType="satellite"
+            region={{
+              latitude: signal.latitude,
+              longitude: signal.longitude,
+              latitudeDelta: 0.0005,
+              longitudeDelta: 0.0005,
             }}
-            onPress={() => setModalVisible(true)}
           >
-            <Text>選擇工程師</Text>
-          </TouchableOpacity>
+            <Marker
+              coordinate={{
+                latitude: signal?.latitude,
+                longitude: signal?.longitude,
+              }}
+              title={`號誌: ${signal.signalNumber}`}
+            />
+          </MapView>
+        ) : null}
 
-          <TextInput
-            placeholder="工程師已選擇"
-            // focusable={false}
-            value={query}
-            // onChangeText={handleSearch}
-            style={styles.searchBar}
-            editable={false}
-          />
+        {/* {signal.repairStatus === 0 && */}
+        {Array.isArray(signal.images) &&
+        signal.images.filter(Boolean).length > 0 ? (
+          <View>
+            <Text style={{ textAlign: "center", margin: 10 }}>
+              目前圖片/影片
+            </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              {mediaList.map((imgUrl: string, index: number) => {
+                if (!imgUrl) return null;
 
-          <Modal visible={modalVisible} animationType="slide">
-            <View style={{ flex: 1, padding: 20, backgroundColor: "white" }}>
-              <Text
-                style={{
-                  marginBottom: 15,
-                  textAlign: "center",
-                  fontWeight: "bold",
-                  fontSize: 18,
-                }}
-              >
-                請選擇工程師
-              </Text>
+                const encodedUrl = encodeURI(imgUrl);
+                const isVideo = imgUrl.endsWith(".mp4");
 
-              <TextInput
-                placeholder="搜尋工程師"
-                value={query}
-                onChangeText={setQuery}
-                style={styles.searchBar}
-              />
-
-              <FlatList
-                data={results}
-                keyExtractor={(item) => item.name.toString()}
-                renderItem={({ item }) => (
+                return (
                   <TouchableOpacity
-                    style={{
-                      paddingVertical: 12,
-                      borderBottomWidth: 1,
-                      borderColor: "#eee",
-                    }}
+                    key={index}
                     onPress={() => {
-                      setQuery(item.name.toString());
-                      setIdEngineer(item.id);
-                      // setFilteredData([]);
-                      setModalVisible(false); // Đóng modal sau khi chọn
+                      // setPreviewMedia(encodedUrl);
+                      // setPreviewVisible(true);
+                      handleOpenPreview(index);
+                    }}
+                    style={{ width: screenWidth / 4 - 16, height: 80 }}
+                  >
+                    {isVideo ? (
+                      <Video
+                        source={{ uri: encodedUrl }}
+                        style={{
+                          width: 80,
+                          height: 80,
+                          backgroundColor: "#000",
+                        }}
+                        resizeMode={ResizeMode.CONTAIN}
+                        isMuted
+                        isLooping
+                        shouldPlay={false}
+                      />
+                    ) : (
+                      <Image
+                        source={{ uri: encodedUrl }}
+                        style={{ width: 80, height: 80, borderRadius: 8 }}
+                        resizeMode="cover"
+                      />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        ) : (
+          <Text style={{ textAlign: "center", margin: 10 }}>無圖片資料</Text>
+        )}
+
+        {/* Modal hiển thị khi click */}
+        <Modal visible={previewVisible} transparent={true} animationType="fade">
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.9)",
+              justifyContent: "center",
+              alignItems: "center",
+              padding: 20,
+            }}
+          >
+            <TouchableOpacity
+              onPress={handleClosePreview}
+              style={{
+                position: "absolute",
+                top: 40,
+                right: 20,
+                padding: 10,
+                backgroundColor: "#fff",
+                borderRadius: 20,
+                zIndex: 999,
+              }}
+            >
+              <Text style={{ fontWeight: "bold", borderRadius: 100 }}>X</Text>
+            </TouchableOpacity>
+            {mediaList.length > 0 && (
+              <>
+                {mediaList[currentIndex1].endsWith(".mp4") ? (
+                  <Video
+                    source={{ uri: encodeURI(mediaList[currentIndex1]) }}
+                    style={{
+                      width: Dimensions.get("window").width * 0.9,
+                      height: 300,
+                    }}
+                    useNativeControls
+                    resizeMode={ResizeMode.CONTAIN}
+                  />
+                ) : (
+                  <Image
+                    source={{ uri: encodeURI(mediaList[currentIndex1]) }}
+                    style={{
+                      width: Dimensions.get("window").width * 0.9,
+                      height: 300,
+                      borderRadius: 10,
+                    }}
+                    resizeMode="contain"
+                  />
+                )}
+
+                {/* Điều hướng trước/sau */}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    marginTop: 20,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 20,
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={handlePrev}
+                    disabled={currentIndex1 === 0}
+                    style={{
+                      paddingVertical: 10,
+                      paddingHorizontal: 20,
+                      backgroundColor: currentIndex1 === 0 ? "#ccc" : "#fff",
+                      borderRadius: 10,
                     }}
                   >
-                    <Text>{item.name}</Text>
+                    <Text style={{ fontWeight: "bold" }}>←</Text>
                   </TouchableOpacity>
-                )}
-              />
 
-              <Button title="關閉" onPress={() => setModalVisible(false)} />
-            </View>
-          </Modal>
-        </>
-      )}
-
-      {signal.latitude && signal.longitude ? (
-        <MapView
-          style={styles.map}
-          mapType="satellite"
-          region={{
-            latitude: signal.latitude,
-            longitude: signal.longitude,
-            latitudeDelta: 0.0005,
-            longitudeDelta: 0.0005,
-          }}
-        >
-          <Marker
-            coordinate={{
-              latitude: signal?.latitude,
-              longitude: signal?.longitude,
-            }}
-            title={`號誌: ${signal.signalNumber}`}
-          />
-        </MapView>
-      ) : null}
-
-      {/* {signal.repairStatus === 0 && */}
-      {Array.isArray(signal.images) &&
-      signal.images.filter(Boolean).length > 0 ? (
-        <View>
-          <Text style={{ textAlign: "center", margin: 10 }}>目前圖片/影片</Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-            {mediaList.map((imgUrl: string, index: number) => {
-              if (!imgUrl) return null;
-
-              const encodedUrl = encodeURI(imgUrl);
-              const isVideo = imgUrl.endsWith(".mp4");
-
-              return (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => {
-                    // setPreviewMedia(encodedUrl);
-                    // setPreviewVisible(true);
-                    handleOpenPreview(index);
-                  }}
-                  style={{ width: screenWidth / 4 - 16, height: 80 }}
-                >
-                  {isVideo ? (
-                    <Video
-                      source={{ uri: encodedUrl }}
-                      style={{
-                        width: 80,
-                        height: 80,
-                        backgroundColor: "#000",
-                      }}
-                      resizeMode={ResizeMode.CONTAIN}
-                      isMuted
-                      isLooping
-                      shouldPlay={false}
-                    />
-                  ) : (
-                    <Image
-                      source={{ uri: encodedUrl }}
-                      style={{ width: 80, height: 80, borderRadius: 8 }}
-                      resizeMode="cover"
-                    />
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-      ) : (
-        <Text style={{ textAlign: "center", margin: 10 }}>無圖片資料</Text>
-      )}
-
-      {/* Modal hiển thị khi click */}
-      <Modal visible={previewVisible} transparent={true} animationType="fade">
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.9)",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: 20,
-          }}
-        >
-          <TouchableOpacity
-            onPress={handleClosePreview}
-            style={{
-              position: "absolute",
-              top: 40,
-              right: 20,
-              padding: 10,
-              backgroundColor: "#fff",
-              borderRadius: 20,
-              zIndex: 999,
-            }}
-          >
-            <Text style={{ fontWeight: "bold", borderRadius: 100 }}>X</Text>
-          </TouchableOpacity>
-          {mediaList.length > 0 && (
-            <>
-              {mediaList[currentIndex1].endsWith(".mp4") ? (
-                <Video
-                  source={{ uri: encodeURI(mediaList[currentIndex1]) }}
-                  style={{
-                    width: Dimensions.get("window").width * 0.9,
-                    height: 300,
-                  }}
-                  useNativeControls
-                  resizeMode={ResizeMode.CONTAIN}
-                />
-              ) : (
-                <Image
-                  source={{ uri: encodeURI(mediaList[currentIndex1]) }}
-                  style={{
-                    width: Dimensions.get("window").width * 0.9,
-                    height: 300,
-                    borderRadius: 10,
-                  }}
-                  resizeMode="contain"
-                />
-              )}
-
-              {/* Điều hướng trước/sau */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  marginTop: 20,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 20,
-                }}
-              >
-                <TouchableOpacity
-                  onPress={handlePrev}
-                  disabled={currentIndex1 === 0}
-                  style={{
-                    paddingVertical: 10,
-                    paddingHorizontal: 20,
-                    backgroundColor: currentIndex1 === 0 ? "#ccc" : "#fff",
-                    borderRadius: 10,
-                  }}
-                >
-                  <Text style={{ fontWeight: "bold" }}>←</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={handleNext}
-                  disabled={currentIndex1 === mediaList.length - 1}
-                  style={{
-                    paddingVertical: 10,
-                    paddingHorizontal: 20,
-                    backgroundColor:
-                      currentIndex1 === mediaList.length - 1 ? "#ccc" : "#fff",
-                    borderRadius: 10,
-                  }}
-                >
-                  <Text style={{ fontWeight: "bold" }}>→</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-          {/* <TouchableOpacity
+                  <TouchableOpacity
+                    onPress={handleNext}
+                    disabled={currentIndex1 === mediaList.length - 1}
+                    style={{
+                      paddingVertical: 10,
+                      paddingHorizontal: 20,
+                      backgroundColor:
+                        currentIndex1 === mediaList.length - 1
+                          ? "#ccc"
+                          : "#fff",
+                      borderRadius: 10,
+                    }}
+                  >
+                    <Text style={{ fontWeight: "bold" }}>→</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+            {/* <TouchableOpacity
             style={{
               flex: 1,
               backgroundColor: "rgba(0,0,0,0.9)",
@@ -623,7 +698,7 @@ const TrafficSignalDetail = () => {
             }}
             onPress={() => setPreviewVisible(false)}
           > */}
-          {/* {previewMedia ? (
+            {/* {previewMedia ? (
             previewMedia.endsWith(".mp4") ? (
               <Video
                 source={{ uri: previewMedia }}
@@ -640,105 +715,105 @@ const TrafficSignalDetail = () => {
             )
           ) : null} */}
 
-          {/* </TouchableOpacity> */}
-        </View>
-      </Modal>
-
-      {
-        signal.repairStatus === 0 ? (
-          <View
-            style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              marginTop: 10,
-              justifyContent: "center",
-            }}
-          >
-            <View style={{ margin: 5 }}>
-              <Text style={{ textAlign: "center" }}>
-                請確認一下交通號誌是否有問題？
-              </Text>
-            </View>
+            {/* </TouchableOpacity> */}
           </View>
-        ) : null
-        // <Text style={{ textAlign: "center", margin: 10 }}>請選擇工程師</Text>
-        // <Button
-        //   color={Colors.primaryColor}
-        //   title="選擇圖片/影片 (最多8個)"
-        //   onPress={pickMedia}
-        // />
-      }
+        </Modal>
 
-      <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 10 }}>
-        {selectedMedia.map((img, index) => (
-          <View key={index} style={{ position: "relative", margin: 4 }}>
-            <Image
-              source={{ uri: img.uri }}
-              style={{ width: 80, height: 80, borderRadius: 8 }}
-            />
-            <TouchableOpacity
-              onPress={() => {
-                const newImages = [...selectedMedia];
-                newImages.splice(index, 1);
-                setSelectedMedia(newImages);
-              }}
+        {
+          signal.repairStatus === 0 ? (
+            <View
               style={{
-                position: "absolute",
-                top: -6,
-                right: -6,
-                backgroundColor: "rgba(0,0,0,0.7)",
-                borderRadius: 12,
-                width: 24,
-                height: 24,
+                flexDirection: "row",
+                flexWrap: "wrap",
+                marginTop: 10,
                 justifyContent: "center",
-                alignItems: "center",
-                zIndex: 1,
               }}
             >
-              <Text style={{ color: "white", fontSize: 16 }}>×</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-      </View>
-      {/* {signal.repairStatus === 0 && (
+              <View style={{ margin: 5 }}>
+                <Text style={{ textAlign: "center" }}>
+                  請確認一下交通號誌是否有問題？
+                </Text>
+              </View>
+            </View>
+          ) : null
+          // <Text style={{ textAlign: "center", margin: 10 }}>請選擇工程師</Text>
+          // <Button
+          //   color={Colors.primaryColor}
+          //   title="選擇圖片/影片 (最多8個)"
+          //   onPress={pickMedia}
+          // />
+        }
+
+        <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 10 }}>
+          {selectedMedia.map((img, index) => (
+            <View key={index} style={{ position: "relative", margin: 4 }}>
+              <Image
+                source={{ uri: img.uri }}
+                style={{ width: 80, height: 80, borderRadius: 8 }}
+              />
+              <TouchableOpacity
+                onPress={() => {
+                  const newImages = [...selectedMedia];
+                  newImages.splice(index, 1);
+                  setSelectedMedia(newImages);
+                }}
+                style={{
+                  position: "absolute",
+                  top: -6,
+                  right: -6,
+                  backgroundColor: "rgba(0,0,0,0.7)",
+                  borderRadius: 12,
+                  width: 24,
+                  height: 24,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  zIndex: 1,
+                }}
+              >
+                <Text style={{ color: "white", fontSize: 16 }}>×</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+        {/* {signal.repairStatus === 0 && (
         <Button color={Colors.primaryColor} title="完畢" onPress={handleSave} />
       )} */}
 
-      {signal && (
-        <>
-          {signal.repairStatus === 0 ? (
-            <View
-              style={{
-                marginBottom: 40,
-                display: "flex",
-                flexDirection: "row",
-                // gap: 10,
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <View style={{ width: "48%" }}>
-                <Button
-                  color={Colors.primaryColor}
-                  title="確認"
-                  onPress={() => handleConfirm()}
-                />
+        {signal && (
+          <>
+            {signal.repairStatus === 0 ? (
+              <View
+                style={{
+                  marginBottom: 40,
+                  display: "flex",
+                  flexDirection: "row",
+                  // gap: 10,
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <View style={{ width: "48%" }}>
+                  <Button
+                    color={Colors.primaryColor}
+                    title="確認"
+                    onPress={() => handleConfirm()}
+                  />
+                </View>
+                <View style={{ width: "48%" }}>
+                  <Button
+                    color="red"
+                    title="拒絕"
+                    // onPress={() => handleConfirm(4)}
+                  />
+                </View>
               </View>
-              <View style={{ width: "48%" }}>
-                <Button
-                  color="red"
-                  title="拒絕"
-                  // onPress={() => handleConfirm(4)}
-                />
-              </View>
-            </View>
-          ) : signal.repairStatus === 1 ? (
-            <View
-              style={{
-                marginBottom: 40,
-              }}
-            >
-              {/* <Text style={[styles.text, { marginTop: 12 }]}>
+            ) : signal.repairStatus === 1 ? (
+              <View
+                style={{
+                  marginBottom: 40,
+                }}
+              >
+                {/* <Text style={[styles.text, { marginTop: 12 }]}>
                 選擇更新狀態：
               </Text>
               <Picker
@@ -750,17 +825,18 @@ const TrafficSignalDetail = () => {
                 <Picker.Item label="已完成維修" value={3} />
               </Picker> */}
 
-              {/* {/* <View style={{ borderRadius: 100 }}> */}
-              <Button
-                color={Colors.primaryColor}
-                title="確認"
-                onPress={() => handleChooseEngineer()}
-              />
-            </View>
-          ) : null}
-        </>
-      )}
-    </ScrollView>
+                {/* {/* <View style={{ borderRadius: 100 }}> */}
+                <Button
+                  color={Colors.primaryColor}
+                  title="確認"
+                  onPress={() => handleChooseEngineer()}
+                />
+              </View>
+            ) : null}
+          </>
+        )}
+      </ScrollView>
+    </View>
   );
 };
 

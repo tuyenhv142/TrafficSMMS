@@ -242,9 +242,9 @@ const trafficListEngineer = () => {
 
   const isAuthorized = role === "2";
 
-  if (!isAuthorized) {
-    return <Text style={styles.errorText}>您沒有權限訪問此頁面。</Text>;
-  }
+  // if (!isAuthorized) {
+  //   return <Text style={styles.errorText}>您沒有權限訪問此頁面。</Text>;
+  // }
 
   return (
     <View style={styles.container}>

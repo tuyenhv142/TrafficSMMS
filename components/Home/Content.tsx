@@ -68,9 +68,9 @@ const Content = () => {
         <View style={styles.layout}>
           <TouchableOpacity
             onPress={() => {
-              router.push({
-                pathname: "/statistic",
-              });
+              // router.push({
+              //   pathname: "/statistic",
+              // });
             }}
           >
             <View style={styles.border}>

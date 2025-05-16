@@ -54,7 +54,7 @@ const getRepairStatusDescription = (status: number) => {
     case 3:
       return "維修完成";
     case 4:
-      return "closed";
+      return "拒絕";
     default:
       return "null";
   }
@@ -229,7 +229,7 @@ const trafficLightErrorList = () => {
         故障確認: 1,
         維修中: 2,
         維修完成: 3,
-        closed: 4,
+        拒絕: 4,
       };
 
       return item.repairStatus === statusMap[selectFill];
@@ -310,7 +310,7 @@ const trafficLightErrorList = () => {
           "故障確認",
           "維修中",
           "維修完成",
-          "closed",
+          "拒絕",
           // "尚未確認",
           // "已分配工程師",
           // "工程師正在維修中",

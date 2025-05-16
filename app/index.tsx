@@ -51,7 +51,7 @@ const getToken = async () => {
     // console.log("FCM Token:", token);
     return token;
   } catch (error) {
-    console.error("Error fetching token:", error);
+    console.log("Error fetching token:", error);
     await new Promise((resolve) => setTimeout(resolve, 2000));
     return getToken();
   }
@@ -86,7 +86,7 @@ const checkTokenValidity = async (): Promise<boolean> => {
       return false;
     }
   } catch (error) {
-    console.error("Token validation error:", error);
+    console.log("Token validation error:", error);
     return false;
   }
 };
