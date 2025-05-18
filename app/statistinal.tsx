@@ -1,4 +1,4 @@
-import apiClient from "@/api/apiClient";
+import apiClient from "./../api/apiClient";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
