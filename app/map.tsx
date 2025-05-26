@@ -47,6 +47,8 @@ const map = () => {
       );
       if (response.data?.content?.data) {
         setAllSignals(response.data.content.data);
+      } else {
+        console.log("No data found in API response");
       }
     } catch (e) {
       console.error("API error", e);
@@ -56,7 +58,7 @@ const map = () => {
   // Mỗi lần vào trang, fetch lại dữ liệu
   useEffect(() => {
     fetchSignals();
-  }, []); // Chạy 1 lần khi component mount
+  }, []);
 
   // Lọc nearbySignals khi allSignals thay đổi
   useEffect(() => {

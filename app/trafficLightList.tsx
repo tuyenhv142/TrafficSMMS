@@ -112,15 +112,15 @@ const trafficLightList = () => {
     content: string;
   }
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchRepairDetail();
-      // if (role !== "1" && role !== "2") {
-      //   router.replace("/");
-      // }
-      // // Gọi API mỗi khi tab được focus
-    }, [])
-  );
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     fetchRepairDetail();
+  //     // if (role !== "1" && role !== "2") {
+  //     //   router.replace("/");
+  //     // }
+  //     // // Gọi API mỗi khi tab được focus
+  //   }, [])
+  // );
   // useFocusEffect(
   //   useCallback(() => {
   //     console.log("Current Role:", role);
@@ -152,7 +152,7 @@ const trafficLightList = () => {
   const fetchRepairDetail = async () => {
     try {
       const response = await apiClient.get<ApiResponse>(
-        "/TrafficEquipment/FindAll?page=1&pageSize=22000"
+        "/TrafficEquipment/FindAll?page=1&pageSize=30000"
       );
       // console.log("Response:", response.data);
       if (response.data?.content?.data) {
@@ -162,8 +162,9 @@ const trafficLightList = () => {
             expanded: false,
           }))
         );
-        // console.log("response", response);
+        console.log("response", response);
       } else {
+        console.log("No traffic signal data available.");
         setError("No traffic signal data available.");
       }
     } catch (error: any) {

@@ -108,15 +108,15 @@ const trafficListEngineer = () => {
     content: string;
   }
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchRepairDetail();
-      // if (role !== "1" && role !== "2") {
-      //   router.replace("/");
-      // }
-      // // Gọi API mỗi khi tab được focus
-    }, [])
-  );
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     fetchRepairDetail();
+  //     // if (role !== "1" && role !== "2") {
+  //     //   router.replace("/");
+  //     // }
+  //     // // Gọi API mỗi khi tab được focus
+  //   }, [])
+  // );
   useFocusEffect(
     useCallback(() => {
       console.log("Current Role:", role);

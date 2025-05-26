@@ -69,113 +69,97 @@ const StatisticsScreen = () => {
   const [trafficSignals, setTrafficSignals] = useState<TrafficSignal[]>([]);
   // console.log("Traffic Signals:", trafficSignals);
 
-  // const fetchData = async () => {
-  //   try {
-  //     const response = await apiClient.get(
-  //       "/TrafficEquipment/GetNormalDistrict"
-  //     );
-  //     console.log("Response:", response.data);
-  //   } catch (error: any) {
-  //     console.error("Fetch error:", error);
-  //     // setError("Failed to fetch data.");
-  //   }
-  // };
+  const fetchData = async () => {
+    try {
+      const response = await apiClient.get<ApiResponse>(
+        "/TrafficEquipment/GetNormalDistrict"
+      );
+      // console.log("Response:", response.data);
+      const entries = Object.entries(response.data.content ?? {}) as [
+        string,
+        number
+      ][];
+      const filtered = entries.filter(([_, value]) => value > 0);
+
+      // Cập nhật label và value:
+      setLabels(filtered.map(([key]) => key));
+      setValues(filtered.map(([_, value]) => value));
+      // console.log("Entries:", entries);
+    } catch (error: any) {
+      console.error("Fetch error:", error);
+    }
+  };
+
+  const fetchData2 = async () => {
+    try {
+      const response = await apiClient.get<ApiResponse2>(
+        "/TrafficEquipment/GetNormal"
+      );
+      // console.log("Response:", response.data);
+      if (response.data.content) {
+        setLightError([response.data.content]);
+        // console.log("Light Error:", response.data.content);
+      }
+    } catch (error: any) {
+      console.error("Fetch error:", error);
+    }
+  };
+
+  const fetchData3 = async () => {
+    try {
+      const response = await apiClient.get<ApiResponse2>(
+        "/TrafficEquipment/GetNormalError"
+      );
+      // console.log("Response:", response.data);
+      if (response.data.content) {
+        setLightError2([response.data.content]);
+        // console.log("Light Error:", response.data.content);
+      }
+    } catch (error: any) {
+      console.error("Fetch error:", error);
+    }
+  };
+
+  const fetchData4 = async () => {
+    try {
+      const response = await apiClient.get<ApiResponse3>(
+        "/RepairDetails/FindAll?page=1&pageSize=200"
+      );
+      if (response.data?.content?.data) {
+        setTrafficSignals(
+          response.data.content.data.map((item) => ({
+            identificationCode: item.id,
+            latitude: item.lat,
+            longitude: item.log,
+            road1: item.road1,
+            road2: item.road2,
+            district1: item.district1,
+            signalNumber: item.signalNumber,
+            typesOfSignal: item.managementUnit,
+            userId: item.user_id,
+            user_name: item.user_name,
+            faultCodes: item.faultCodes,
+            repairStatus: item.repairStatus,
+            remark: item.typesOfSignal,
+            images: Array.isArray(item.images) ? item.images : [],
+            expanded: false,
+          }))
+        );
+        // console.log("response", response);
+      } else {
+        // setError("No traffic signal data available.");
+        console.log("No traffic signal data available.");
+      } // console.log("Response:", response.data);
+    } catch (error: any) {
+      console.error("Fetch error:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await apiClient.get<ApiResponse>(
-          "/TrafficEquipment/GetNormalDistrict"
-        );
-        // console.log("Response:", response.data);
-        const entries = Object.entries(response.data.content ?? {}) as [
-          string,
-          number
-        ][];
-        const filtered = entries.filter(([_, value]) => value > 0);
-
-        // Cập nhật label và value:
-        setLabels(filtered.map(([key]) => key));
-        setValues(filtered.map(([_, value]) => value));
-        // console.log("Entries:", entries);
-      } catch (error: any) {
-        console.error("Fetch error:", error);
-      }
-    };
-
     fetchData();
-    // console.log(labels, values);
-  });
-
-  useEffect(() => {
-    const fetchData2 = async () => {
-      try {
-        const response = await apiClient.get<ApiResponse2>(
-          "/TrafficEquipment/GetNormal"
-        );
-        // console.log("Response:", response.data);
-        if (response.data.content) {
-          setLightError([response.data.content]);
-          // console.log("Light Error:", response.data.content);
-        }
-      } catch (error: any) {
-        console.error("Fetch error:", error);
-      }
-    };
-    const fetchData3 = async () => {
-      try {
-        const response = await apiClient.get<ApiResponse2>(
-          "/TrafficEquipment/GetNormalError"
-        );
-        // console.log("Response:", response.data);
-        if (response.data.content) {
-          setLightError2([response.data.content]);
-          // console.log("Light Error:", response.data.content);
-        }
-      } catch (error: any) {
-        console.error("Fetch error:", error);
-      }
-    };
-    const fetchData4 = async () => {
-      try {
-        const response = await apiClient.get<ApiResponse3>(
-          "/RepairDetails/FindAll?page=1&pageSize=200"
-        );
-        if (response.data?.content?.data) {
-          setTrafficSignals(
-            response.data.content.data.map((item) => ({
-              identificationCode: item.id,
-              latitude: item.lat,
-              longitude: item.log,
-              road1: item.road1,
-              road2: item.road2,
-              district1: item.district1,
-              signalNumber: item.signalNumber,
-              typesOfSignal: item.managementUnit,
-              userId: item.user_id,
-              user_name: item.user_name,
-              faultCodes: item.faultCodes,
-              repairStatus: item.repairStatus,
-              remark: item.typesOfSignal,
-              images: Array.isArray(item.images) ? item.images : [],
-              expanded: false,
-            }))
-          );
-          // console.log("response", response);
-        } else {
-          // setError("No traffic signal data available.");
-          console.log("No traffic signal data available.");
-        } // console.log("Response:", response.data);
-      } catch (error: any) {
-        console.error("Fetch error:", error);
-      }
-    };
-
-    // fetchData2();
     fetchData3();
     fetchData4();
-    // console.log(labels, values);
-  });
+  }, []);
 
   // const lightErrorCount = trafficSignals.reduce((acc, curr) => {
   //   if (Array.isArray(curr) && curr.length > 0) {

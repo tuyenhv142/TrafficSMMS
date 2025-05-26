@@ -106,17 +106,6 @@ const index = () => {
     // console.log(role);
   }, []);
 
-  // const netInfo = useNetInfo();
-  // const [showNoInternet, setShowNoInternet] = useState(false);
-
-  // useEffect(() => {
-  //   if (!netInfo.isConnected) {
-  //     setShowNoInternet(true);
-  //   } else {
-  //     setShowNoInternet(false);
-  //   }
-  // }, [netInfo.isConnected]);
-
   useEffect(() => {
     requestUserPermission();
     getToken();

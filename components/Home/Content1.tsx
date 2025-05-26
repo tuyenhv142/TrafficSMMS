@@ -115,7 +115,7 @@ const Content1 = () => {
   };
   useFocusEffect(
     useCallback(() => {
-      console.log("Current Role:", role);
+      // console.log("Current Role:", role);
       //   if (role !== "1" && role !== "2") {
       //     alert("您沒有權限訪問此頁面。");
       //     // router.replace("/");
@@ -139,18 +139,16 @@ const Content1 = () => {
       console.error("Error updating repair status:", error);
     }
   };
-  useEffect(() => {
-    const fetchUserId = async () => {
-      const storedUserId = await AsyncStorage.getItem("user_id");
-      setUserid(storedUserId); // Set the user ID in the state
-    };
-
-    fetchUserId();
-  }, []);
+  const fetchUserId = async () => {
+    const storedUserId = await AsyncStorage.getItem("user_id");
+    setUserid(storedUserId); // Set the user ID in the state
+  };
 
   useEffect(() => {
     fetchRepairDetail(); // Gọi API khi component load
+    fetchUserId(); // Lấy user ID khi component load
   }, []);
+
   const filteredSignals = trafficSignals.filter(
     (item) =>
       item.userId === null ||

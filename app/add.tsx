@@ -204,7 +204,6 @@ const add = () => {
   const handleCancel = () => {
     setSignal(null);
     router.back();
-    // router.push("/map");
   };
 
   // Reload data whenever screen comes into focus
