@@ -44,7 +44,7 @@ const Content = () => {
                 source={require("./../../assets/images/1.png")}
               ></Image>
             </View>
-            <Text style={styles.textLayout}>故障號誌</Text>
+            <Text style={styles.textLayout}>工程師清單</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.layout}>
@@ -61,7 +61,7 @@ const Content = () => {
                 source={require("./../../assets/images/2.png")}
               ></Image>
             </View>
-            <Text style={styles.textLayout}>故障未確認</Text>
+            <Text style={styles.textLayout}>故障號誌</Text>
           </TouchableOpacity>
         </View>
 

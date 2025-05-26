@@ -7,28 +7,19 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Image,
+  Platform,
+  PermissionsAndroid,
 } from "react-native";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import apiClient from "../api/apiClient";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { useAuth } from "../context/AuthProvider";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Colors } from "./../constants/Colors";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import MapView, { Polyline, Marker } from "react-native-maps";
+import { set } from "lodash";
 
-const getFaultCodeDescription = (code: number) => {
-  switch (code) {
-    case 0:
-      return "正常";
-    case 1:
-      return "故障";
-    case 2:
-      return "故障";
-    default:
-      return "null";
-  }
-};
 const getFaultCodeDescription2 = (code: number) => {
   switch (code) {
     case 0:
@@ -50,9 +41,9 @@ const getRepairStatusDescription = (status: number) => {
     case 1:
       return "故障確認";
     case 2:
-      return "維修中";
+      return "等確認";
     case 3:
-      return "維修完成";
+      return "已完成維修";
     case 4:
       return "closed";
     default:
@@ -61,6 +52,7 @@ const getRepairStatusDescription = (status: number) => {
 };
 const trafficListEngineer = () => {
   const router = useRouter();
+  const mapRef = useRef<MapView | null>(null);
   const { role } = useAuth();
   const [trafficSignals, setTrafficSignals] = useState<TrafficSignal[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -69,6 +61,8 @@ const trafficListEngineer = () => {
   const [userid, setUserid] = useState<string | null>(null);
   const [searchText, setSearchText] = useState<string>("");
   const [selectFill, setSelectFill] = useState("全部");
+  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+
   interface ApiResponse {
     content?: {
       data?: {
@@ -201,9 +195,9 @@ const trafficListEngineer = () => {
     fetchUserId();
   }, []);
 
-  // useEffect(() => {
-  //   fetchRepairDetail(); // Gọi API khi component load
-  // }, []);
+  useEffect(() => {
+    fetchRepairDetail(); // Gọi API khi component load
+  }, []);
 
   // const filteredSignals = trafficSignals.filter(
   //   (item) => item.faultCodes !== 0
@@ -225,8 +219,8 @@ const trafficListEngineer = () => {
         // 尚未確認: 0,
         // 故障通報: 0,
         // 故障確認: 1,
-        維修中: 2,
-        維修完成: 3,
+        等確認: 2,
+        已完成維修: 3,
         // closed: 4,
       };
 
@@ -241,6 +235,11 @@ const trafficListEngineer = () => {
   }
 
   const isAuthorized = role === "2";
+  const toggleCheckbox = (id: number) => {
+    setSelectedItems((prev) =>
+      prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]
+    );
+  };
 
   // if (!isAuthorized) {
   //   return <Text style={styles.errorText}>您沒有權限訪問此頁面。</Text>;
@@ -306,8 +305,8 @@ const trafficListEngineer = () => {
           "全部",
           //   "故障通報",
           // "故障確認",
-          "維修中",
-          "維修完成",
+          "等確認",
+          "已完成維修",
         ].map((status) => (
           <TouchableOpacity
             key={status}
@@ -334,207 +333,219 @@ const trafficListEngineer = () => {
       ) : error ? (
         <Text style={styles.errorText}>{error}</Text>
       ) : (
-        <FlatList
-          data={fill}
-          keyExtractor={(item) => item.identificationCode.toString()}
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-          renderItem={({ item, index }) => (
-            <View
-              style={[
-                styles.item,
-                item.repairStatus === 3 ? styles.fixedItem : styles.errorItem,
-              ]}
-            >
-              <View style={styles.infoContainer}>
-                <TouchableOpacity
-                  onPress={() => {
-                    setTrafficSignals((prev) =>
-                      prev.map((signal) =>
-                        signal.identificationCode === item.identificationCode
-                          ? { ...signal, expanded: !signal.expanded }
-                          : signal
-                      )
-                    );
-                  }}
-                >
-                  <View
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      height: 50,
-                      alignItems: "center",
-                    }}
-                  >
-                    <View>
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          // fontWeight: "bold",
-                          color: "#000",
-                          // width: "30%",
-                        }}
-                      >
-                        號誌編號: {item.signalNumber}
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          // fontWeight: "bold",
-                          color: "#000",
-                          // width: "30%",
-                        }}
-                      >
-                        號誌類型: {item.typesOfSignal}
-                      </Text>
-                    </View>
-                    <View
+        <>
+          <FlatList
+            data={fill}
+            keyExtractor={(item) => item.identificationCode.toString()}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            renderItem={({ item, index }) => (
+              <View
+                style={[
+                  styles.item,
+                  item.repairStatus === 3 ? styles.fixedItem : styles.errorItem,
+                ]}
+              >
+                <View style={styles.infoContainer}>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <TouchableOpacity
+                      onPress={() => toggleCheckbox(item.identificationCode)}
                       style={{
-                        borderRadius: 50,
-                        backgroundColor:
-                          item.repairStatus === 1
-                            ? "#B53A3A"
-                            : item.repairStatus === 2
-                            ? "#eeca5d"
-                            : item.repairStatus === 3
-                            ? "#76c1ff"
-                            : "#c5c5c5",
-                        padding: 5,
-                        width: "30%",
+                        width: 24,
+                        height: 24,
+                        borderRadius: 4,
+                        borderWidth: 2,
+                        borderColor: "#000",
+                        marginRight: 10,
+                        justifyContent: "center",
                         alignItems: "center",
                       }}
                     >
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          // fontWeight: "bold",
-                          // width: "100%",
-                          color: item.repairStatus !== 1 ? "#000" : "#fff",
+                      {selectedItems.includes(item.identificationCode) && (
+                        <View
+                          style={{
+                            width: 12,
+                            height: 12,
+                            backgroundColor: "#000",
+                            borderRadius: 2,
+                          }}
+                        />
+                      )}
+                    </TouchableOpacity>
+                    <View style={{ flex: 1 }}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setTrafficSignals((prev) =>
+                            prev.map((signal) =>
+                              signal.identificationCode ===
+                              item.identificationCode
+                                ? { ...signal, expanded: !signal.expanded }
+                                : signal
+                            )
+                          );
                         }}
                       >
-                        {getRepairStatusDescription(item.repairStatus)}
-                      </Text>
+                        <View
+                          style={{
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            height: 50,
+                            alignItems: "center",
+                          }}
+                        >
+                          <View>
+                            <Text
+                              style={{
+                                fontSize: 14,
+                                // fontWeight: "bold",
+                                color: "#000",
+                                // width: "30%",
+                              }}
+                            >
+                              號誌編號: {item.signalNumber}
+                            </Text>
+                            <Text
+                              style={{
+                                fontSize: 14,
+                                // fontWeight: "bold",
+                                color: "#000",
+                                // width: "30%",
+                              }}
+                            >
+                              號誌類型: {item.typesOfSignal}
+                            </Text>
+                          </View>
+                          <View
+                            style={{
+                              borderRadius: 50,
+                              backgroundColor:
+                                item.repairStatus === 1
+                                  ? "#B53A3A"
+                                  : item.repairStatus === 2
+                                  ? "#eeca5d"
+                                  : item.repairStatus === 3
+                                  ? "#76c1ff"
+                                  : "#c5c5c5",
+                              padding: 5,
+                              width: "30%",
+                              alignItems: "center",
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontSize: 14,
+                                // fontWeight: "bold",
+                                // width: "100%",
+                                color:
+                                  item.repairStatus !== 1 ? "#000" : "#fff",
+                              }}
+                            >
+                              {getRepairStatusDescription(item.repairStatus)}
+                            </Text>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
                     </View>
                   </View>
-                </TouchableOpacity>
-                {/* Button Toggle Expand */}
-                {/* <TouchableOpacity
-                  onPress={() => {
-                    router.push({
-                      pathname: "/trafficSignalDetail",
-                      params: { signal: JSON.stringify(item) },
-                    });
-                    confirmRepairStatus(item.identificationCode);
-                  }}
-                  style={{
-                    marginTop: 10,
-                    alignSelf: "flex-start",
-                    borderWidth: 1,
-                    borderColor: "#000",
-                    paddingHorizontal: 10,
-                    paddingVertical: 4,
-                    borderRadius: 6,
-                    backgroundColor: "#fff",
-                  }}
-                >
-                  <Text style={{ color: "#000" }}>
-                    {item.expanded ? "隱藏詳細資料" : "顯示詳細資料"}
-                  </Text>
-                </TouchableOpacity> */}
-
-                {/* Largebox hiển thị nếu expanded */}
-                {item.expanded && (
-                  <View
-                    style={{
-                      marginTop: 10,
-                      borderTopColor: "#000",
-                      borderTopWidth: 0.5,
-                    }}
-                  >
-                    {/* <View
+                  {/* Largebox hiển thị nếu expanded */}
+                  {item.expanded && (
+                    <View
+                      style={{
+                        marginTop: 10,
+                        borderTopColor: "#000",
+                        borderTopWidth: 0.5,
+                      }}
+                    >
+                      {/* <View
                       style={{
                         display: "flex",
                         flexDirection: "row",
                         justifyContent: "space-between",
                       }}
                     > */}
-                    <Text style={styles.statusText1}>
-                      緯度: {item.latitude}
-                    </Text>
-                    <Text style={styles.statusText1}>
-                      經度: {item.longitude}
-                    </Text>
-                    {/* <Text style={styles.statusText1}>
+                      <Text style={styles.statusText1}>
+                        緯度: {item.latitude}
+                      </Text>
+                      <Text style={styles.statusText1}>
+                        經度: {item.longitude}
+                      </Text>
+                      {/* <Text style={styles.statusText1}>
                       行政區: {item.district1}
                     </Text>
                     <Text style={styles.statusText1}>
                       道路: {item.road1} , {item.road2}
                     </Text> */}
-                    {/* </View> */}
-                    <View
-                    //   style={{
-                    //     display: "flex",
-                    //     flexDirection: "row",
-                    //     justifyContent: "space-between",
-                    //   }}
-                    >
+                      {/* </View> */}
                       <View>
-                        {item.userId == null ? (
-                          <Text style={styles.statusText1}>維修紀錄: 無</Text>
-                        ) : (
-                          <>
-                            <Text style={styles.statusText1}>
-                              維修紀錄: {item.userId}
-                            </Text>
-                            <Text style={styles.statusText1}>
-                              上次維修日期: {item.signalNumber}
-                            </Text>
-                            <Text style={styles.statusText1}>
-                              上次故障原因:{" "}
-                              {getFaultCodeDescription2(item.faultCodes)}
-                            </Text>
-                            {/* <Text style={styles.statusText1}>
+                        <View>
+                          {item.userId == null ? (
+                            <Text style={styles.statusText1}>維修紀錄: 無</Text>
+                          ) : (
+                            <>
+                              <Text style={styles.statusText1}>
+                                維修紀錄: {item.userId}
+                              </Text>
+                              <Text style={styles.statusText1}>
+                                上次維修日期: {item.signalNumber}
+                              </Text>
+                              <Text style={styles.statusText1}>
+                                上次故障原因:{" "}
+                                {getFaultCodeDescription2(item.faultCodes)}
+                              </Text>
+                              {/* <Text style={styles.statusText1}>
                               維修工程師:{" "}
                               {item.userId == 1 ? "杜文長" : "黃文選"}
                             </Text> */}
-                          </>
-                        )}
-                      </View>
-                      <View
-                        style={{
-                          display: "flex",
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                          marginTop: 10,
-                          borderTopColor: "#000",
-                          borderTopWidth: 0.5,
-                        }}
-                      >
-                        <TouchableOpacity
-                        //   onPress={() => {
-                        //     router.push({
-                        //       pathname: "/trafficSignalDetail",
-                        //       params: {
-                        //         index: index.toString(),
-                        //         signals: JSON.stringify(fill),
-                        //       },
-                        //     });
-                        //   }}
+                            </>
+                          )}
+                        </View>
+                        <View
+                          style={{
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            marginTop: 10,
+                            borderTopColor: "#000",
+                            borderTopWidth: 0.5,
+                          }}
                         >
-                          <Text
-                            style={{
-                              fontSize: 14,
-                              color: "#000",
-                              marginTop: 5,
-                              borderBottomColor: "#000",
-                              borderBottomWidth: 1,
-                            }}
+                          <TouchableOpacity
+                          // onPress={() => {
+                          //   setSelectedItems((prev) =>
+                          //     prev.includes(item.identificationCode)
+                          //       ? prev.filter(
+                          //           (id) => id !== item.identificationCode
+                          //         )
+                          //       : [...prev, item.identificationCode]
+                          //   );
+                          //   const selectedSignals = trafficSignals.filter(
+                          //     (signal) =>
+                          //       selectedItems.includes(
+                          //         signal.identificationCode
+                          //       )
+                          //   );
+                          //   router.push({
+                          //     pathname: "/routeMap",
+                          //     params: {
+                          //       data: JSON.stringify(selectedSignals),
+                          //     },
+                          //   });
+                          // }}
                           >
-                            規劃路徑
-                          </Text>
-                        </TouchableOpacity>
-                        {/* <TouchableOpacity
+                            <Text
+                              style={{
+                                fontSize: 14,
+                                color: "#000",
+                                marginTop: 5,
+                                borderBottomColor: "#000",
+                                borderBottomWidth: 1,
+                              }}
+                            >
+                              規劃路徑
+                            </Text>
+                          </TouchableOpacity>
+                          {/* <TouchableOpacity
                           onPress={() => {
                             router.push({
                               pathname: "/trafficSignalDetail",
@@ -557,71 +568,105 @@ const trafficListEngineer = () => {
                             顯示詳細資料
                           </Text>
                         </TouchableOpacity> */}
-                        <TouchableOpacity
-                          onPress={() => {
-                            router.push({
-                              pathname: "/trafficSignalEngineer",
-                              params: {
-                                index: index.toString(),
-                                signals: JSON.stringify(fill),
-                              },
-                            });
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontSize: 14,
-                              color: "#000",
-                              marginTop: 5,
-                              borderBottomColor: "#000",
-                              borderBottomWidth: 1,
+                          <TouchableOpacity
+                            onPress={() => {
+                              router.push({
+                                pathname: "/trafficSignalEngineer",
+                                params: {
+                                  index: index.toString(),
+                                  signals: JSON.stringify(fill),
+                                },
+                              });
                             }}
                           >
-                            顯示詳細資料
-                          </Text>
-                        </TouchableOpacity>
+                            <Text
+                              style={{
+                                fontSize: 14,
+                                color: "#000",
+                                marginTop: 5,
+                                borderBottomColor: "#000",
+                                borderBottomWidth: 1,
+                              }}
+                            >
+                              顯示詳細資料
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
                       </View>
-                    </View>
 
-                    {/* <Text style={styles.statusText1}>
+                      {/* <Text style={styles.statusText1}>
                       使用者: {item.userId ?? "無"}
                     </Text> */}
-                    {/* Có thể thêm nhiều dòng khác nếu muốn */}
-                  </View>
-                )}
+                      {/* Có thể thêm nhiều dòng khác nếu muốn */}
+                    </View>
+                  )}
+                </View>
               </View>
-            </View>
+            )}
+            // renderItem={({ item }) => (
+            //   <TouchableOpacity
+            //     style={[
+            //       styles.item,
+            //       item.repairStatus === 3 ? styles.fixedItem : styles.errorItem,
+            //     ]}
+            //     onPress={() => {
+            //       router.push({
+            //         pathname: "/trafficSignalDetail",
+            //         params: { signal: JSON.stringify(item) },
+            //       });
+            //       confirmRepairStatus(item.identificationCode);
+            //     }}
+            //   >
+            //     <View style={styles.infoContainer}>
+            //       <Text style={styles.signalNumber}>{item.signalNumber}</Text>
+            //       <Text style={styles.statusText}>
+            //         Error: {getFaultCodeDescription(item.faultCodes)}
+            //       </Text>
+            //       <Text style={styles.statusText}>
+            //         Status: {getRepairStatusDescription(item.repairStatus)}
+            //       </Text>
+            //       {item.remark ? (
+            //         <Text style={styles.remarkText}>Note: {item.remark}</Text>
+            //       ) : null}
+            //     </View>
+            //   </TouchableOpacity>
+            // )}
+            ListEmptyComponent={<Text style={styles.emptyText}>沒有資料</Text>}
+          />
+          {selectedItems.length > 0 && (
+            <TouchableOpacity
+              style={{
+                position: "absolute",
+                bottom: 20,
+                right: 20,
+                backgroundColor: "#007BFF",
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+                borderRadius: 50,
+                elevation: 5,
+                shadowColor: "#000",
+                shadowOpacity: 0.3,
+                shadowOffset: { width: 0, height: 2 },
+                shadowRadius: 4,
+              }}
+              onPress={() => {
+                const selectedSignals = trafficSignals.filter((signal) =>
+                  selectedItems.includes(signal.identificationCode)
+                );
+                router.push({
+                  pathname: "/routeMap",
+                  params: {
+                    data: JSON.stringify(selectedSignals),
+                  },
+                });
+              }}
+            >
+              <Text style={{ color: "white", fontWeight: "bold" }}>
+                規劃路徑
+              </Text>
+            </TouchableOpacity>
           )}
-          // renderItem={({ item }) => (
-          //   <TouchableOpacity
-          //     style={[
-          //       styles.item,
-          //       item.repairStatus === 3 ? styles.fixedItem : styles.errorItem,
-          //     ]}
-          //     onPress={() => {
-          //       router.push({
-          //         pathname: "/trafficSignalDetail",
-          //         params: { signal: JSON.stringify(item) },
-          //       });
-          //       confirmRepairStatus(item.identificationCode);
-          //     }}
-          //   >
-          //     <View style={styles.infoContainer}>
-          //       <Text style={styles.signalNumber}>{item.signalNumber}</Text>
-          //       <Text style={styles.statusText}>
-          //         Error: {getFaultCodeDescription(item.faultCodes)}
-          //       </Text>
-          //       <Text style={styles.statusText}>
-          //         Status: {getRepairStatusDescription(item.repairStatus)}
-          //       </Text>
-          //       {item.remark ? (
-          //         <Text style={styles.remarkText}>Note: {item.remark}</Text>
-          //       ) : null}
-          //     </View>
-          //   </TouchableOpacity>
-          // )}
-          ListEmptyComponent={<Text style={styles.emptyText}>沒有資料</Text>}
-        />
+        </>
       )}
     </View>
   );
@@ -653,6 +698,7 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     flexDirection: "column",
+    // alignItems: "center",
   },
   signalNumber: {
     fontSize: 16,

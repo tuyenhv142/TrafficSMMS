@@ -48,6 +48,7 @@ export default function RootLayout() {
             name="map"
             options={{ headerTitle: "地圖", headerShown: false }}
           />
+          <Stack.Screen name="routeMap" options={{ headerTitle: "規劃路徑" }} />
           <Stack.Screen name="profile" options={{ headerTitle: "會員" }} />
           <Stack.Screen name="notification" options={{ headerTitle: "通知" }} />
           <Stack.Screen name="add" options={{ headerTitle: "故障通報" }} />
