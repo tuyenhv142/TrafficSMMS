@@ -48,6 +48,7 @@ const MapViewComponent = ({
 }: Props) => {
   const router = useRouter();
   const mapRef = useRef<MapView>(null);
+  const [is3D, setIs3D] = useState(false);
   const [selectedSignal, setSelectedSignal] = useState<Signal | null>(null);
   console.log("selectedSignal", selectedSignal);
   const lastCenter = useRef<{ latitude: number; longitude: number } | null>(
@@ -102,6 +103,41 @@ const MapViewComponent = ({
   const clickMapStyle = () => {
     setMapStyle((prevState) => !prevState);
   };
+  const toggle3DMode = () => {
+    if (!mapRef.current) return;
+
+    if (!is3D) {
+      // Bật chế độ 3D
+      mapRef.current.animateCamera(
+        {
+          pitch: 60,
+          heading: 45,
+          zoom: 17,
+          center: selectedLocation ?? {
+            latitude: 22.99318457718073,
+            longitude: 120.20495235408347,
+          },
+        },
+        { duration: 1000 }
+      );
+    } else {
+      // Tắt chế độ 3D về mặc định
+      mapRef.current.animateCamera(
+        {
+          pitch: 0,
+          heading: 0,
+          zoom: 16,
+          center: selectedLocation ?? {
+            latitude: 22.99318457718073,
+            longitude: 120.20495235408347,
+          },
+        },
+        { duration: 1000 }
+      );
+    }
+
+    setIs3D(!is3D);
+  };
 
   return (
     <>
@@ -122,6 +158,9 @@ const MapViewComponent = ({
         // showsMyLocationButton={true}
         showsTraffic={showErrorsOnly}
         onRegionChangeComplete={handleRegionChangeComplete}
+        showsBuildings={true}
+        pitchEnabled={true}
+        rotateEnabled={true}
       >
         {/* {selectedLocation && <Marker coordinate={selectedLocation} />} */}
         {signals.map((signal) => (
@@ -139,7 +178,15 @@ const MapViewComponent = ({
           />
         ))}
       </MapView>
+
       <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.button1} onPress={toggle3DMode}>
+          <MaterialCommunityIcons
+            name="cube-scan" // hoặc bạn chọn icon khác phù hợp
+            size={24}
+            color="#000"
+          />
+        </TouchableOpacity>
         <TouchableOpacity style={styles.button1} onPress={toggleMapType}>
           <MaterialCommunityIcons
             name={mapType === "standard" ? "map" : "satellite-variant"}
