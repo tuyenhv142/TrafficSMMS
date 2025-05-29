@@ -50,7 +50,7 @@ const MapViewComponent = ({
   const mapRef = useRef<MapView>(null);
   const [is3D, setIs3D] = useState(false);
   const [selectedSignal, setSelectedSignal] = useState<Signal | null>(null);
-  console.log("selectedSignal", selectedSignal);
+  // console.log("selectedSignal", selectedSignal);
   const lastCenter = useRef<{ latitude: number; longitude: number } | null>(
     null
   );
@@ -65,11 +65,11 @@ const MapViewComponent = ({
   }, [selectedLocation]);
 
   useEffect(() => {
-    if (selectedLocation && mapRef.current) {
+    if (selectedLocation && mapRef.current&& !is3D) {
       mapRef.current.animateToRegion({
         ...selectedLocation,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
+        latitudeDelta: 0.06,
+        longitudeDelta: 0.06,
       });
     }
   }, [selectedLocation]);
@@ -84,7 +84,7 @@ const MapViewComponent = ({
     if (lastCenter.current) {
       const distance = getDistance(lastCenter.current, newCenter);
 
-      if (distance >= 1000) {
+      if (distance >= 2000) {
         onMapCenterChanged?.(newCenter);
         lastCenter.current = newCenter; // Cập nhật tâm mới
       }
@@ -112,7 +112,7 @@ const MapViewComponent = ({
         {
           pitch: 60,
           heading: 45,
-          zoom: 17,
+          zoom: 18,
           center: selectedLocation ?? {
             latitude: 22.99318457718073,
             longitude: 120.20495235408347,
