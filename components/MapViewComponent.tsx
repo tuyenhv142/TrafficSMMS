@@ -68,8 +68,8 @@ const MapViewComponent = ({
     if (selectedLocation && mapRef.current&& !is3D) {
       mapRef.current.animateToRegion({
         ...selectedLocation,
-        latitudeDelta: 0.06,
-        longitudeDelta: 0.06,
+        latitudeDelta: 0.03,
+        longitudeDelta: 0.03,
       });
     }
   }, [selectedLocation]);
@@ -84,7 +84,7 @@ const MapViewComponent = ({
     if (lastCenter.current) {
       const distance = getDistance(lastCenter.current, newCenter);
 
-      if (distance >= 2000) {
+      if (distance >= 1500) {
         onMapCenterChanged?.(newCenter);
         lastCenter.current = newCenter; // Cập nhật tâm mới
       }

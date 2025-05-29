@@ -69,7 +69,7 @@ const map = () => {
         { latitude: signal.latitude, longitude: signal.longitude },
         locationToUse
       );
-      return distance < 2000; // Chỉ lấy những tín hiệu gần vị trí (dưới 1000m)
+      return distance < 1500; // Chỉ lấy những tín hiệu gần vị trí (dưới 1000m)
     });
 
     setNearbySignals(nearby); // Cập nhật tín hiệu gần với vị trí

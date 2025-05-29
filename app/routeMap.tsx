@@ -1,8 +1,16 @@
-import { StyleSheet, Text, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import MapView, { Polyline, Marker } from "react-native-maps";
-import apiClient from "@/api/apiClient";
+// import apiClient from "@/api/apiClient";
 import { useLocalSearchParams } from "expo-router";
+import * as Location from "expo-location";
+
 
 interface TrafficSignal {
   identificationCode: number;
@@ -21,35 +29,13 @@ interface TrafficSignal {
   expanded: boolean;
 }
 
-interface ApiResponse {
-  content?: {
-    data?: {
-      id: number;
-      traff_id: number;
-      lat: number;
-      log: number;
-      road1: string;
-      road2: string;
-      district1: string;
-      managementUnit: string;
-      signalNumber: string;
-      faultCodes: number;
-      repairStatus: number;
-      user_id: number;
-      user_name: string;
-      identificationCode: number;
-      typesOfSignal: string;
-      images: string[];
-    }[];
-  };
-}
-
 const routeMap = () => {
   const { data } = useLocalSearchParams();
   const mapRef = useRef<MapView | null>(null);
   const [trafficSignals, setTrafficSignals] = useState<TrafficSignal[]>([]);
   const [routeData, setRouteData] = useState<any>(null);
   const [hasFittedMap, setHasFittedMap] = useState(false);
+  const [showList, setShowList] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -64,6 +50,22 @@ const routeMap = () => {
         ...trafficSignals.map((signal) => [signal.longitude, signal.latitude]),
       ]
     : [];
+
+    useEffect(() => {
+  (async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Cần quyền truy cập vị trí để hiển thị bản đồ!');
+      return;
+    }
+
+    const location = await Location.getCurrentPositionAsync({});
+    setCurrentLocation({
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude,
+    });
+  })();
+}, []);
 
   // console.log("Coordinates sent to API:", coordinates);
 
@@ -122,6 +124,10 @@ const routeMap = () => {
   const fetchRoute = async () => {
     const apiKey = "5b3ce3597851110001cf6248bd48b134d5f8443fb2a538a1554ee87e";
     const profile = "driving-car"; // walking, cycling, driving-car...
+    //   const jobs = trafficSignals.map((signal, index) => ({
+    //   id: index + 1,
+    //   location: [signal.longitude, signal.latitude],
+    // }));
 
     const body = {
       coordinates: coordinates,
@@ -154,42 +160,50 @@ const routeMap = () => {
       throw error;
     }
   };
-  //   const fetchRepairDetail = async () => {
-  //     try {
-  //       const response = await apiClient.get<ApiResponse>(
-  //         "/RepairDetails/FindAllNoDoneByAccount?page=1&pageSize=200"
-  //       );
-  //       // console.log("Response:", response.data);
-  //       if (response.data?.content?.data) {
-  //         setTrafficSignals(
-  //           response.data.content.data.map((item) => ({
-  //             identificationCode: item.id,
-  //             latitude: item.lat,
-  //             longitude: item.log,
-  //             road1: item.road1,
-  //             road2: item.road2,
-  //             district1: item.district1,
-  //             signalNumber: item.signalNumber,
-  //             typesOfSignal: item.managementUnit,
-  //             userId: item.user_id,
-  //             faultCodes: item.faultCodes,
-  //             repairStatus: item.repairStatus,
-  //             remark: item.typesOfSignal,
-  //             images: Array.isArray(item.images) ? item.images : [],
-  //             expanded: false,
-  //           }))
-  //         );
-  //         // console.log("response", response);
-  //       } else {
-  //         // setError("No traffic signal data available.");
-  //       }
-  //     } catch (error: any) {
-  //       console.error("Fetch error:", error);
-  //       //   setError("Failed to fetch data.");
-  //     } finally {
-  //       //   setIsLoading(false);
-  //     }
-  //   };
+  const sortSignalsByNearest = (
+    origin: { latitude: number; longitude: number },
+    signals: TrafficSignal[]
+  ): TrafficSignal[] => {
+    const visited: boolean[] = new Array(signals.length).fill(false);
+    const sorted: TrafficSignal[] = [];
+    let current = origin;
+
+    for (let i = 0; i < signals.length; i++) {
+      let minIndex = -1;
+      let minDistance = Infinity;
+
+      signals.forEach((signal, index) => {
+        if (!visited[index]) {
+          const distance = Math.hypot(
+            signal.latitude - current.latitude,
+            signal.longitude - current.longitude
+          );
+          if (distance < minDistance) {
+            minDistance = distance;
+            minIndex = index;
+          }
+        }
+      });
+
+      if (minIndex !== -1) {
+        visited[minIndex] = true;
+        sorted.push(signals[minIndex]);
+        current = {
+          latitude: signals[minIndex].latitude,
+          longitude: signals[minIndex].longitude,
+        };
+      }
+    }
+
+    return sorted;
+  };
+
+  useEffect(() => {
+    if (currentLocation && trafficSignals.length > 0) {
+      const sorted = sortSignalsByNearest(currentLocation, trafficSignals);
+      setTrafficSignals(sorted);
+    }
+  }, [currentLocation, trafficSignals.length]);
 
   useEffect(() => {
     if (data) {
@@ -201,6 +215,56 @@ const routeMap = () => {
       }
     }
   }, [data]);
+
+  const removeSignalAtIndex = (index: number) => {
+    const updatedSignals = [...trafficSignals];
+    updatedSignals.splice(index, 1);
+    setTrafficSignals(updatedSignals);
+    setHasFittedMap(false);
+  };
+
+  const focusToLocation = (latitude: number, longitude: number) => {
+    if (mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude,
+          longitude,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
+        },
+        1000
+      );
+    }
+  };
+
+  useEffect(() => {
+  if (showList && mapRef.current && trafficSignals.length > 0) {
+    // Lấy các tọa độ của các điểm
+    const points = trafficSignals.map(signal => ({
+      latitude: signal.latitude,
+      longitude: signal.longitude,
+    }));
+
+    // Nếu có dữ liệu tuyến đường thì thêm vào để fit hết
+    let allCoordinates = points;
+    if (routeData && routeData.features && routeData.features.length > 0) {
+      const routeCoordinates = routeData.features[0].geometry.coordinates.map(
+        ([lng, lat]: [number, number]) => ({
+          latitude: lat,
+          longitude: lng,
+        })
+      );
+      allCoordinates = [...points, ...routeCoordinates];
+    }
+
+    // Fit map về vùng có tất cả các điểm
+    mapRef.current.fitToCoordinates(allCoordinates, {
+      edgePadding: { top: 80, right: 80, bottom: 80, left: 80 },
+      animated: true,
+    });
+  }
+}, [showList, trafficSignals, routeData]);
+
 
   return (
     <View style={{ flex: 1 }}>
@@ -257,6 +321,69 @@ const routeMap = () => {
           />
         )}
       </MapView>
+
+      <TouchableOpacity
+        onPress={() => {setShowList(!showList);}}
+        style={{
+          position: "absolute",
+          bottom: 20,
+          right: 20,
+          backgroundColor: "white",
+          padding: 12,
+          borderRadius: 30,
+          shadowColor: "#000",
+          shadowOpacity: 0.3,
+          shadowOffset: { width: 0, height: 2 },
+          shadowRadius: 4,
+          elevation: 5,
+          zIndex: 999,
+        }}
+      >
+        <Text style={{ fontSize: 20 }}>📋</Text>
+      </TouchableOpacity>
+
+      {showList && (
+        <View style={{ flex: 1, backgroundColor: "#f0f0f0" }}>
+          <Text style={{ fontWeight: "bold", fontSize: 16, margin: 10 }}>
+            交通號誌維修路線:
+          </Text>
+          <ScrollView
+            contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: 20 }}
+          >
+            {trafficSignals.map((signal, idx) => (
+              <TouchableOpacity
+                key={idx}
+                onPress={() =>
+                  focusToLocation(signal.latitude, signal.longitude)
+                }
+                style={{
+                  backgroundColor: "white",
+                  padding: 10,
+                  marginBottom: 8,
+                  borderRadius: 8,
+                  shadowColor: "#000",
+                  shadowOpacity: 0.1,
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowRadius: 4,
+                }}
+              >
+                <Text>點 {idx + 1}</Text>
+                <Text>
+                  地址: {signal.latitude} - {signal.longitude}
+                </Text>
+                {/* <Text>區: {signal.district1}</Text> */}
+                <Text>燈類型: {signal.typesOfSignal}</Text>
+                <TouchableOpacity
+                  onPress={() => removeSignalAtIndex(idx)}
+                  style={{ marginTop: 5, alignSelf: "flex-end" }}
+                >
+                  <Text style={{ color: "red" }}>刪除</Text>
+                </TouchableOpacity>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
     </View>
   );
 };
