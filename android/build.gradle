@@ -15,13 +15,15 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath('com.android.tools.build:gradle')
+        classpath('com.android.tools.build:gradle:7.2.0')
         classpath('com.facebook.react:react-native-gradle-plugin')
         classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
         classpath('com.google.gms:google-services:4.4.2')
-        classpath('com.android.tools.build:gradle:7.2.0')
+        classpath("expo.modules:expo-module-gradle-plugin:1.5.0")
     }
 }
+
+// apply plugin: "expo-root-project"
 
 apply plugin: "com.facebook.react.rootproject"
 
